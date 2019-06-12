@@ -1,0 +1,24 @@
+{
+  "name": "@humanwhocodes/esfmt",
+  "version": "0.1.0",
+  "description": "A pluggable JavaScript source code formatter",
+  "main": "cjs.js",
+  "scripts": {
+    "build": "rollup -c",
+    "lint": "eslint src/ tests/",
+    "test": "npm run lint && mocha tests/"
+  },
+  "keywords": [],
+  "author": "nzakas",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@humanwhocodes/ordered-set": "^0.1.0",
+    "espree": "^5.0.1"
+  },
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "eslint": "^5.8.0",
+    "mocha": "^5.2.0",
+    "rollup": "^1.15.1"
+  }
+}
