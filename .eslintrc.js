@@ -1,42 +1,42 @@
-module.exports = {
-    "env": {
+module.exports ={     
+    "env":{
         "es6": true,
     },
     "extends": "eslint:recommended",
-    "parserOptions": {
+    "parserOptions":{
         "ecmaVersion": 2018,
         "sourceType": "module"
     },
-    "rules": {
-        "indent": [
+    "rules":{
+        "indent":[
             "error",
             4,
             { SwitchCase: 1 }
         ],
-        "linebreak-style": [
+        "linebreak-style":[
             "error",
             "unix"
         ],
-        "quotes": [
+        "quotes":[
             "error",
             "double"
         ],
-        "semi": [
+        "semi":[
             "error",
             "always"
         ]
     },
-    overrides: [
+    overrides:[
         {
             // tests are in commonjs
-            files: ["tests/*.js"],
-            env: {
-                mocha: true,
-                commonjs: true,
-                node: true
+            files:["tests/*.js"],
+            env:{
+                mocha:true,
+                commonjs:true,
+                node:true
             },
-            parserOptions: {
-                sourceType: "script"
+            parserOptions:{
+                sourceType:"script"
             }
         }
     ]

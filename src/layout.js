@@ -17,10 +17,21 @@ const DEFAULT_OPTIONS = {
     indent: 4,
     eol: "\n",
     semicolons: true,
+    quotes: "double"
 };
 
+// TODO: Fix whitespace regex
 const WHITESPACE = /\s/;
 const NEWLINE = /[\r\n]/;
+
+const QUOTES = new Map([
+    ["double", "\""],
+    ["single", "'"]
+]);
+
+function isWhitespace(c) {
+    return WHITESPACE.test(c) && !NEWLINE.test(c);
+}
 
 //-----------------------------------------------------------------------------
 // Helpers
@@ -40,6 +51,18 @@ class CodeParts extends OrderedSet {
         const previous = this.previous(part);
         return Boolean(previous && this.isEol(part));
     }
+}
+
+function convertString(value, quotes) {
+
+    const desiredQuotes = QUOTES.get(quotes);
+
+    // Special case: Already the correct quote style
+    if (value.charAt(0) === desiredQuotes) {
+        return value;
+    }
+
+    return desiredQuotes + value.slice(1, -1).replace(new RegExp(desiredQuotes, "g"), "\\" + desiredQuotes) + desiredQuotes;
 }
 
 function createParts({ast, text}, options) {
@@ -68,9 +91,17 @@ function createParts({ast, text}, options) {
 
         // next part is a token
         if (token && token.range[0] === index) {
-            parts.add(token);
-            index = token.range[1];
-            rangeParts.set(token.range[0], token);
+            const newToken = {
+                ...token
+            };
+
+            if (newToken.type === "String") {
+                newToken.value = convertString(newToken.value, options.quotes);
+            }
+
+            parts.add(newToken);
+            index = newToken.range[1];
+            rangeParts.set(newToken.range[0], newToken);
             tokenIndex++;
             continue;
         }
@@ -84,10 +115,10 @@ function createParts({ast, text}, options) {
 
                 if (c === "\r") {
                     if (text.charAt(index + 1) === "\n") {
-                        value = "\r\n";
                         index++;
                     }
                 }
+                const previous = parts.last();
 
                 parts.add({
                     type: "EOL",
@@ -96,14 +127,20 @@ function createParts({ast, text}, options) {
 
                 index++;
                 rangeParts.set(startIndex, parts.last());
+
+                // if there is whitespace before EOL, delete it
+                if (previous && previous.type === "Whitespace") {
+                    parts.delete(previous);
+                }
+                
                 continue;
             }
 
-            if (WHITESPACE.test(c)) {
+            if (isWhitespace(c)) {
                 let startIndex = index;
                 do {
                     index++;
-                } while (WHITESPACE.test(text.charAt(index)));
+                } while (isWhitespace(text.charAt(index)));
 
                 parts.add({
                     type: "Whitespace",
@@ -175,6 +212,14 @@ export class Layout {
         this.rangeParts = rangeParts;
     }
 
+    getFirstToken(node) {
+        return this.rangeParts.get(node.range[0]);
+    }
+
+    getLastToken(node) {
+        return this.parts.previous(this.rangeParts.get(node.range[1]));
+    }
+
     spaceBefore(partOrNode) {
 
         let part = this.parts.has(partOrNode) ? partOrNode : this.rangeParts.get(partOrNode.range[0]);
@@ -204,7 +249,7 @@ export class Layout {
 
         const next = this.parts.next(part);
         if (next) {
-            if (this.parts.isWhitespace(part)) {
+            if (this.parts.isWhitespace(next)) {
                 if (!this.parts.isEol(part)) {
                     next.value = " ";
                 }
@@ -218,6 +263,43 @@ export class Layout {
             this.parts.insertAfter({
                 type: "Whitespace",
                 value: " "
+            }, part);
+        }
+    }
+
+    noSpaceAfter(partOrNode) {
+        let part = this.parts.has(partOrNode) ? partOrNode : this.rangeParts.get(partOrNode.range[0]);
+
+        const next = this.parts.next(part);
+        if (next && this.parts.isWhitespace(next)) {
+            this.parts.delete(next);
+        }
+    }
+
+    noSpaceBefore(partOrNode) {
+        let part = this.parts.has(partOrNode) ? partOrNode : this.rangeParts.get(partOrNode.range[0]);
+
+        const previous = this.parts.previous(part);
+        if (previous && this.parts.isWhitespace(previous)) {
+            this.parts.delete(previous);
+        }
+    }
+
+    lineBreakAfter(partOrNode) {
+        let part = this.parts.has(partOrNode) ? partOrNode : this.rangeParts.get(partOrNode.range[0]);
+
+        const next = this.parts.next(part);
+        if (next) {
+            if (!this.parts.isEol(part)) {
+                this.parts.insertAfter({
+                    type: "EOL",
+                    value: this.options.eol
+                }, part);
+            }
+        } else {
+            this.parts.insertAfter({
+                type: "EOL",
+                value: this.options.eol
             }, part);
         }
     }

@@ -97,8 +97,11 @@ export class Formatter {
             ...options.parserOptions,
             comment: true,
             tokens: true,
-            range: true
+            range: true,
+            loc: true,
+            ecmaVersion: 2019
         };
+
     }
 
     format(text, layoutOptions = {}) {
@@ -139,7 +142,6 @@ export class Formatter {
 
         // do any remaining layout plugins
         if (layouts.length) {
-            console.log('i')
             let ast = parser.parse(result, parserOptions);
             result = runLayouts(layouts, { ast, text, layoutOptions, parser });
             layouts = [];
