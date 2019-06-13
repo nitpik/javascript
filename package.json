@@ -13,7 +13,8 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@humanwhocodes/ordered-set": "^0.1.0",
-    "espree": "^5.0.1"
+    "espree": "^5.0.1",
+    "estraverse": "^4.2.0"
   },
   "devDependencies": {
     "chai": "^4.2.0",

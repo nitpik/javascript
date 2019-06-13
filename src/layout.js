@@ -26,8 +26,26 @@ const NEWLINE = /[\r\n]/;
 // Helpers
 //-----------------------------------------------------------------------------
 
+class CodeParts extends OrderedSet {
+
+    isWhitespace(part) {
+        return part.type === "Whitespace";
+    }
+
+    isEol(part) {
+        return part.type === "EOL";
+    }
+
+    isIndent(part) {
+        const previous = this.previous(part);
+        return Boolean(previous && this.isEol(part));
+    }
+}
+
 function createParts({ast, text}, options) {
-    const parts = new OrderedSet();
+    const parts = new CodeParts();
+    const rangeParts = new Map();
+
     const { tokens, comments } = ast;
     let commentIndex = 0, tokenIndex = 0;
     let index = 0;
@@ -43,6 +61,7 @@ function createParts({ast, text}, options) {
                 value: text.slice(comment.range[0], comment.range[1])
             });
             index = comment.range[1];
+            rangeParts.set(comment.range[0], parts.last());
             commentIndex++;
             continue;
         }
@@ -51,6 +70,7 @@ function createParts({ast, text}, options) {
         if (token && token.range[0] === index) {
             parts.add(token);
             index = token.range[1];
+            rangeParts.set(token.range[0], token);
             tokenIndex++;
             continue;
         }
@@ -60,7 +80,8 @@ function createParts({ast, text}, options) {
         if (c) {
 
             if (NEWLINE.test(c)) {
-                
+                let startIndex = index;
+
                 if (c === "\r") {
                     if (text.charAt(index + 1) === "\n") {
                         value = "\r\n";
@@ -74,7 +95,7 @@ function createParts({ast, text}, options) {
                 });
 
                 index++;
-
+                rangeParts.set(startIndex, parts.last());
                 continue;
             }
 
@@ -89,6 +110,8 @@ function createParts({ast, text}, options) {
                     value: text.slice(startIndex, index)
                 });
 
+                rangeParts.set(startIndex, parts.last());
+
                 continue;
             }
                         
@@ -96,7 +119,7 @@ function createParts({ast, text}, options) {
 
     }
 
-    return parts;
+    return {parts, rangeParts};
 }
 
 function normalizeIndents(parts, options) {
@@ -145,35 +168,57 @@ export class Layout {
             ...options
         };
 
-        this.parts = createParts(sourceCode, this.options);
-        normalizeIndents(this.parts, this.options);
+        const { parts, rangeParts } = createParts(sourceCode, this.options);
+        normalizeIndents(parts, this.options);
+
+        this.parts = parts;
+        this.rangeParts = rangeParts;
     }
 
-    stripEOL() {
-        let part = this.parts.first();
+    spaceBefore(partOrNode) {
 
-        while (part) {
-            let next = this.parts.next(part);
+        let part = this.parts.has(partOrNode) ? partOrNode : this.rangeParts.get(partOrNode.range[0]);
 
-            if (part.type === "EOL") {
-                this.parts.delete(part);
+        const previous = this.parts.previous(part);
+        if (previous) {
+            if (this.parts.isWhitespace(part)) {
+                if (!this.parts.isEol(part)) {
+                    previous.value = " ";
+                }
+            } else {
+                this.parts.insertBefore({
+                    type: "Whitespace",
+                    value: " "
+                }, part);
             }
-
-            part = next;
+        } else {
+            this.parts.insertBefore({
+                type: "Whitespace",
+                value: " "
+            }, part);
         }
     }
 
-    stripWhitespace() {
-        let part = this.parts.first();
+    spaceAfter(partOrNode) {
+        let part = this.parts.has(partOrNode) ? partOrNode : this.rangeParts.get(partOrNode.range[0]);
 
-        while (part) {
-            let next = this.parts.next(part);
-
-            if (part.type === "Whitespace") {
-                this.parts.delete(part);
+        const next = this.parts.next(part);
+        if (next) {
+            if (this.parts.isWhitespace(part)) {
+                if (!this.parts.isEol(part)) {
+                    next.value = " ";
+                }
+            } else {
+                this.parts.insertAfter({
+                    type: "Whitespace",
+                    value: " "
+                }, part);
             }
-
-            part = next;
+        } else {
+            this.parts.insertAfter({
+                type: "Whitespace",
+                value: " "
+            }, part);
         }
     }
 

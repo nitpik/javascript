@@ -4,7 +4,7 @@
 // Imports
 //-----------------------------------------------------------------------------
 
-import { Layout } from "./layout.js";
+import { Formatter } from "./formatter.js";
 import { parse } from "espree";
 import fs from "fs";
 
@@ -13,9 +13,26 @@ import fs from "fs";
 //-----------------------------------------------------------------------------
 
 const text = fs.readFileSync("./.eslintrc.js", "utf8");
-const ast = parse(text, { ecmaVersion: 2018, range: true, comment: true, tokens: true });
-const layout = new Layout({ast, text}, { indent: 2 });
+const formatter = new Formatter({
+    plugins: [
+        {
+            type: "layout",
+            run({ ast, text, layout }) {
+                console.log("yo")
+                return {
+                    Literal(node) {
+                        console.log("HERE");
+                        if (typeof node.value === "string") {
+                            layout.spaceAfter(node);
+                        }
+                    }
+                };
+            }
+        }
+    ]
+});
 
 
 
-console.log(layout.toString());
+
+console.log(formatter.format(text));
