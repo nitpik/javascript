@@ -1,5 +1,5 @@
 {
-  "name": "@humanwhocodes/esfmt",
+  "name": "nitpik",
   "version": "0.1.0",
   "description": "A pluggable JavaScript source code formatter",
   "main": "cjs.js",
@@ -12,9 +12,10 @@
   "author": "nzakas",
   "license": "Apache-2.0",
   "dependencies": {
-    "@humanwhocodes/ordered-set": "^0.1.0",
+    "@humanwhocodes/ordered-set": "^0.2.0",
     "espree": "^5.0.1",
-    "estraverse": "^4.2.0"
+    "estraverse": "^4.2.0",
+    "ordered-set": "^1.0.0"
   },
   "devDependencies": {
     "chai": "^4.2.0",

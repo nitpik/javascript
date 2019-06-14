@@ -9,6 +9,7 @@
 
 import { OrderedSet } from "@humanwhocodes/ordered-set";
 import estraverse from "estraverse";
+import { SemicolonsVisitor } from "./visitors/semicolons.js";
 
 //-----------------------------------------------------------------------------
 // Data
@@ -212,18 +213,50 @@ export class Layout {
         this.parts = parts;
         this.rangeParts = rangeParts;
         let nodeParts = new Map();
+        this.nodeParts = nodeParts;
+
+        const semicolonsVisitor = new SemicolonsVisitor(this, this.options.semicolons);
 
         estraverse.traverse(sourceCode.ast, {
             enter(node) {
+                const first = rangeParts.get(node.range[0]);
+
+                /*
+                 * Program nodes and the body property of Program nodes won't
+                 * have a last part because the end of the range occurs *after*
+                 * the last token. We can just substitue the last code part in
+                 * that case.
+                 */
+                let last = rangeParts.get(node.range[1]) 
+                    ? parts.previous(rangeParts.get(node.range[1]))
+                    : parts.last();
+
+                /*
+                 * Esprima-style parsers consider the trailing semicolon as the
+                 * last part of a given node. To make life easier when editing,
+                 * we assume the token *before* the semicolon is the last part
+                 * of the node. By doing so, developers can always assume a 
+                 * semicolon appears as the next part after the node if present.
+                 */
+                if (last.value === ";") {
+                    last = parts.previous(last);
+                }
+
                 nodeParts.set(node, {
-                    first: rangeParts.get(node.range[0]),
-                    last: parts.previous(rangeParts.get(node.range[1]))
+                    first,
+                    last 
                 });
+
+                /*
+                 * Important: any visitors must be applied *after* the `nodeParts`
+                 * modification to ensure the visitor has enough information to do
+                 * the necessary modifications.
+                 */
+                semicolonsVisitor.visit(node);
             },
             fallback: "iteration"
         });
 
-        this.nodeParts = nodeParts;
     }
 
     getFirstCodePart(partOrNode) {
@@ -301,6 +334,8 @@ export class Layout {
 
     semicolonAfter(partOrNode) {
         let part = this.getLastCodePart(partOrNode);
+
+        // check to see what the next code part is
         const next = this.parts.next(part);
         if (next) {
             if (next.type !== "Punctuator" || next.value !== ";") {
@@ -310,6 +345,7 @@ export class Layout {
                 }, part);
             }
         } else {
+            // we are at the end of the file, so just add the semicolon
             this.parts.add({
                 type: "Punctuator",
                 value: ";"

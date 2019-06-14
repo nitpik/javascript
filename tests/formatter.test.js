@@ -35,9 +35,6 @@ const baseConfig = {
                             }
                         }
                     },
-                    AssignmentExpression(node) {
-                        layout.semicolonAfter(node);
-                    },
                     ReturnStatement(node) {
                         if (node.argument) {
                             layout.spaceBefore(node.argument);
