@@ -7,7 +7,8 @@
 // Imports
 //-----------------------------------------------------------------------------
 
-import OrderedSet from "@humanwhocodes/ordered-set";
+import { OrderedSet } from "@humanwhocodes/ordered-set";
+import estraverse from "estraverse";
 
 //-----------------------------------------------------------------------------
 // Data
@@ -43,13 +44,13 @@ class CodeParts extends OrderedSet {
         return part.type === "Whitespace";
     }
 
-    isEol(part) {
-        return part.type === "EOL";
+    isLineBreak(part) {
+        return part.type === "LineBreak";
     }
 
     isIndent(part) {
         const previous = this.previous(part);
-        return Boolean(previous && this.isEol(part));
+        return Boolean(previous && this.isLineBreak(part));
     }
 }
 
@@ -106,7 +107,7 @@ function createParts({ast, text}, options) {
             continue;
         }
 
-        // otherwise it's whitespace, EOL, or EOF
+        // otherwise it's whitespace, LineBreak, or EOF
         let c = text.charAt(index);
         if (c) {
 
@@ -121,14 +122,14 @@ function createParts({ast, text}, options) {
                 const previous = parts.last();
 
                 parts.add({
-                    type: "EOL",
+                    type: "LineBreak",
                     value: options.eol
                 });
 
                 index++;
                 rangeParts.set(startIndex, parts.last());
 
-                // if there is whitespace before EOL, delete it
+                // if there is whitespace before LineBreak, delete it
                 if (previous && previous.type === "Whitespace") {
                     parts.delete(previous);
                 }
@@ -177,13 +178,13 @@ function normalizeIndents(parts, options) {
             const maybeIndentPart = parts.previous(part);
             const maybeNewLinePart = parts.previous(maybeIndentPart);
 
-            if (maybeIndentPart.type === "Whitespace" && maybeNewLinePart.type === "EOL") {
+            if (maybeIndentPart.type === "Whitespace" && maybeNewLinePart.type === "LineBreak") {
                 maybeIndentPart.value = indent.repeat(indentLevel);
             }
         }
 
-        // first Whitespace after EOL is an indent
-        if (part.type === "EOL") {
+        // first Whitespace after LineBreak is an indent
+        if (part.type === "LineBreak") {
             part = parts.next(part);
 
             if (part && part.type === "Whitespace") {
@@ -210,24 +211,37 @@ export class Layout {
 
         this.parts = parts;
         this.rangeParts = rangeParts;
+        let nodeParts = new Map();
+
+        estraverse.traverse(sourceCode.ast, {
+            enter(node) {
+                nodeParts.set(node, {
+                    first: rangeParts.get(node.range[0]),
+                    last: parts.previous(rangeParts.get(node.range[1]))
+                });
+            },
+            fallback: "iteration"
+        });
+
+        this.nodeParts = nodeParts;
     }
 
-    getFirstToken(node) {
-        return this.rangeParts.get(node.range[0]);
+    getFirstCodePart(partOrNode) {
+        return this.parts.has(partOrNode) ? partOrNode : this.nodeParts.get(partOrNode).first;
     }
 
-    getLastToken(node) {
-        return this.parts.previous(this.rangeParts.get(node.range[1]));
+    getLastCodePart(partOrNode) {
+        return this.parts.has(partOrNode) ? partOrNode : this.nodeParts.get(partOrNode).last;
     }
 
     spaceBefore(partOrNode) {
 
-        let part = this.parts.has(partOrNode) ? partOrNode : this.rangeParts.get(partOrNode.range[0]);
+        let part = this.getFirstCodePart(partOrNode);
 
         const previous = this.parts.previous(part);
         if (previous) {
-            if (this.parts.isWhitespace(part)) {
-                if (!this.parts.isEol(part)) {
+            if (this.parts.isWhitespace(previous)) {
+                if (!this.parts.isLineBreak(part)) {
                     previous.value = " ";
                 }
             } else {
@@ -245,12 +259,12 @@ export class Layout {
     }
 
     spaceAfter(partOrNode) {
-        let part = this.parts.has(partOrNode) ? partOrNode : this.rangeParts.get(partOrNode.range[0]);
+        let part = this.getLastCodePart(partOrNode);
 
         const next = this.parts.next(part);
         if (next) {
             if (this.parts.isWhitespace(next)) {
-                if (!this.parts.isEol(part)) {
+                if (!this.parts.isLineBreak(part)) {
                     next.value = " ";
                 }
             } else {
@@ -268,7 +282,7 @@ export class Layout {
     }
 
     noSpaceAfter(partOrNode) {
-        let part = this.parts.has(partOrNode) ? partOrNode : this.rangeParts.get(partOrNode.range[0]);
+        let part = this.getLastCodePart(partOrNode);
 
         const next = this.parts.next(part);
         if (next && this.parts.isWhitespace(next)) {
@@ -277,7 +291,7 @@ export class Layout {
     }
 
     noSpaceBefore(partOrNode) {
-        let part = this.parts.has(partOrNode) ? partOrNode : this.rangeParts.get(partOrNode.range[0]);
+        let part = this.getFirstCodePart(partOrNode);
 
         const previous = this.parts.previous(part);
         if (previous && this.parts.isWhitespace(previous)) {
@@ -285,20 +299,38 @@ export class Layout {
         }
     }
 
+    semicolonAfter(partOrNode) {
+        let part = this.getLastCodePart(partOrNode);
+        const next = this.parts.next(part);
+        if (next) {
+            if (next.type !== "Punctuator" || next.value !== ";") {
+                this.parts.insertAfter({
+                    type: "Punctuator",
+                    value: ";"
+                }, part);
+            }
+        } else {
+            this.parts.add({
+                type: "Punctuator",
+                value: ";"
+            });
+        }
+    }
+
     lineBreakAfter(partOrNode) {
-        let part = this.parts.has(partOrNode) ? partOrNode : this.rangeParts.get(partOrNode.range[0]);
+        let part = this.getLastCodePart(partOrNode);
 
         const next = this.parts.next(part);
         if (next) {
-            if (!this.parts.isEol(part)) {
+            if (!this.parts.isLineBreak(part)) {
                 this.parts.insertAfter({
-                    type: "EOL",
+                    type: "LineBreak",
                     value: this.options.eol
                 }, part);
             }
         } else {
             this.parts.insertAfter({
-                type: "EOL",
+                type: "LineBreak",
                 value: this.options.eol
             }, part);
         }
