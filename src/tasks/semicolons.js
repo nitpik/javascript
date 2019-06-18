@@ -43,10 +43,10 @@ export default function(context) {
                 adjustSemicolon(node);
             }
         },
-        VariableDeclaration() {
+        VariableDeclaration(node) {
             // todo
         }
 
-    };
+    }
 
 }

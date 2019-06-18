@@ -8,8 +8,9 @@
 //-----------------------------------------------------------------------------
 
 import { OrderedSet } from "@humanwhocodes/ordered-set";
-import estraverse from "estraverse";
-import { SemicolonsVisitor } from "./visitors/semicolons.js";
+import { Visitor, TaskVisitor } from "./visitors.js";
+import semicolonsTask from "./tasks/semicolons.js";
+import espree from "espree";
 
 //-----------------------------------------------------------------------------
 // Data
@@ -215,48 +216,50 @@ export class Layout {
         let nodeParts = new Map();
         this.nodeParts = nodeParts;
 
-        const semicolonsVisitor = new SemicolonsVisitor(this, this.options.semicolons);
+        const visitor = new Visitor(espree.VisitorKeys);
+        visitor.visit(sourceCode.ast, (node, parent) => {
 
-        estraverse.traverse(sourceCode.ast, {
-            enter(node) {
-                const first = rangeParts.get(node.range[0]);
+            const first = rangeParts.get(node.range[0]);
 
-                /*
-                 * Program nodes and the body property of Program nodes won't
-                 * have a last part because the end of the range occurs *after*
-                 * the last token. We can just substitue the last code part in
-                 * that case.
-                 */
-                let last = rangeParts.get(node.range[1]) 
-                    ? parts.previous(rangeParts.get(node.range[1]))
-                    : parts.last();
+            /*
+             * Program nodes and the body property of Program nodes won't
+             * have a last part because the end of the range occurs *after*
+             * the last token. We can just substitue the last code part in
+             * that case.
+             */
+            let last = rangeParts.get(node.range[1]) 
+                ? parts.previous(rangeParts.get(node.range[1]))
+                : parts.last();
 
-                /*
-                 * Esprima-style parsers consider the trailing semicolon as the
-                 * last part of a given node. To make life easier when editing,
-                 * we assume the token *before* the semicolon is the last part
-                 * of the node. By doing so, developers can always assume a 
-                 * semicolon appears as the next part after the node if present.
-                 */
-                if (last.value === ";") {
-                    last = parts.previous(last);
+            /*
+             * Esprima-style parsers consider the trailing semicolon as the
+             * last part of a given node. To make life easier when editing,
+             * we assume the token *before* the semicolon is the last part
+             * of the node. By doing so, developers can always assume a 
+             * semicolon appears as the next part after the node if present.
+             */
+            if (last.value === ";") {
+                last = parts.previous(last);
+            }
+
+            // automatically remove empty statements
+            if (node.type === "EmptyStatement") {
+                if (Array.isArray(parent.body)) {
+                    parent.body = parent.body.filter(child => child !== node);
+                    parts.delete(first);
+                    return;
                 }
+            }
 
-                nodeParts.set(node, {
-                    first,
-                    last 
-                });
-
-                /*
-                 * Important: any visitors must be applied *after* the `nodeParts`
-                 * modification to ensure the visitor has enough information to do
-                 * the necessary modifications.
-                 */
-                semicolonsVisitor.visit(node);
-            },
-            fallback: "iteration"
+            nodeParts.set(node, {
+                first,
+                last 
+            });
         });
 
+        const tasks = new TaskVisitor(espree.VisitorKeys);
+        tasks.addTask(semicolonsTask);
+        tasks.visit(sourceCode.ast, { layout: this });
     }
 
     getFirstCodePart(partOrNode) {

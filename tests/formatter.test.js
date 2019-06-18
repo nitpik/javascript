@@ -17,10 +17,12 @@ const { expect } = require("chai");
 //-----------------------------------------------------------------------------
 
 const baseConfig = {
-    plugins: [
-        {
-            type: "layout",
-            run({ layout }) {
+    layout: {
+        options: {
+
+        },
+        tasks: [
+            ({ layout }) => {
                 return {
                     ArrayExpression(node) {
                         if (node.loc.start.line === node.loc.end.line) {
@@ -58,8 +60,8 @@ const baseConfig = {
                     }
                 };
             }
-        }
-    ]
+        ]
+    }
 };
 
 //-----------------------------------------------------------------------------
