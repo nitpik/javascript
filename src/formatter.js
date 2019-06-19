@@ -73,12 +73,13 @@ export class Formatter {
             range: true,
             loc: true,
             ecmaVersion: 2019,
+            sourceType: "module",
             ecmaFeatures: {
                 jsx: true,
                 globalReturn: true
             }
         });
-        return runLayoutTasks(this.config.layout.tasks, { ast, text, layoutOptions, parser });
+        return runLayoutTasks(this.config.layout.tasks || [], { ast, text, layoutOptions, parser });
 
     }
 }

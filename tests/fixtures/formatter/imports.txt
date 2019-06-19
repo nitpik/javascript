@@ -1,0 +1,11 @@
+{}
+---
+import {foo} from  "bar"
+import {bar,baz}  from "bang";
+import *  as bang from "bing"
+import   "yo"
+---
+import { foo } from "bar";
+import { bar, baz } from "bang";
+import * as bang from "bing";
+import "yo";

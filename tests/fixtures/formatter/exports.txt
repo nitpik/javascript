@@ -1,0 +1,19 @@
+{}
+---
+let   bar= 6;
+const baz  =89
+const   bang= "defined";
+export const   foo=5
+export default function() {};
+export {bar};
+export {baz ,bang}
+export { bing} from "bar" ;
+---
+let bar = 6;
+const baz = 89;
+const bang = "defined";
+export const foo = 5;
+export default function() {}
+export { bar };
+export { baz, bang };
+export { bing } from "bar";

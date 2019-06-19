@@ -10,6 +10,7 @@
 import { OrderedSet } from "@humanwhocodes/ordered-set";
 import { Visitor, TaskVisitor } from "./visitors.js";
 import semicolonsTask from "./tasks/semicolons.js";
+import spacesTask from "./tasks/spaces.js";
 import espree from "espree";
 
 //-----------------------------------------------------------------------------
@@ -145,9 +146,19 @@ function createParts({ast, text}, options) {
                     index++;
                 } while (isWhitespace(text.charAt(index)));
 
+                /*
+                 * If the previous part is a line break, then this is an indent
+                 * and should not be changed. Otherwise, normalize the whitespace
+                 * to a single space.
+                 */
+                const previous = parts.last();
+                const value = previous.type === "LineBreak"
+                    ? text.slice(startIndex, index)
+                    : " ";
+
                 parts.add({
                     type: "Whitespace",
-                    value: text.slice(startIndex, index)
+                    value
                 });
 
                 rangeParts.set(startIndex, parts.last());
@@ -259,6 +270,7 @@ export class Layout {
 
         const tasks = new TaskVisitor(espree.VisitorKeys);
         tasks.addTask(semicolonsTask);
+        tasks.addTask(spacesTask);
         tasks.visit(sourceCode.ast, { layout: this });
     }
 
@@ -270,6 +282,22 @@ export class Layout {
         return this.parts.has(partOrNode) ? partOrNode : this.nodeParts.get(partOrNode).last;
     }
 
+    findNext(valueOrFunction, partOrNode) {
+        const matcher = typeof valueOrFunction === "string"
+            ? part => part.value === valueOrFunction
+            : valueOrFunction;
+        const part = partOrNode ? this.getFirstCodePart(partOrNode) : this.parts.first();
+        return this.parts.findNext(matcher, part);
+    }
+
+    findPrevious(valueOrFunction, partOrNode) {
+        const matcher = typeof valueOrFunction === "string"
+            ? part => part.value === valueOrFunction
+            : valueOrFunction;
+        const part = partOrNode ? this.getFirstCodePart(partOrNode) : this.parts.last();
+        return this.parts.findPrevious(matcher, part);
+    }
+
     spaceBefore(partOrNode) {
 
         let part = this.getFirstCodePart(partOrNode);
@@ -277,10 +305,8 @@ export class Layout {
         const previous = this.parts.previous(part);
         if (previous) {
             if (this.parts.isWhitespace(previous)) {
-                if (!this.parts.isLineBreak(part)) {
-                    previous.value = " ";
-                }
-            } else {
+                previous.value = " ";
+            } else if (!this.parts.isLineBreak(previous)) {
                 this.parts.insertBefore({
                     type: "Whitespace",
                     value: " "
@@ -300,20 +326,13 @@ export class Layout {
         const next = this.parts.next(part);
         if (next) {
             if (this.parts.isWhitespace(next)) {
-                if (!this.parts.isLineBreak(part)) {
-                    next.value = " ";
-                }
-            } else {
+                next.value = " ";
+            } else if (!this.parts.isLineBreak(next)) {
                 this.parts.insertAfter({
                     type: "Whitespace",
                     value: " "
                 }, part);
             }
-        } else {
-            this.parts.insertAfter({
-                type: "Whitespace",
-                value: " "
-            }, part);
         }
     }
 
@@ -337,11 +356,12 @@ export class Layout {
 
     semicolonAfter(partOrNode) {
         let part = this.getLastCodePart(partOrNode);
-
+        
         // check to see what the next code part is
         const next = this.parts.next(part);
         if (next) {
             if (next.type !== "Punctuator" || next.value !== ";") {
+                console.dir(next);
                 this.parts.insertAfter({
                     type: "Punctuator",
                     value: ";"
