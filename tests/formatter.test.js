@@ -7,10 +7,12 @@
 // Imports
 //-----------------------------------------------------------------------------
 
-const { Formatter } = require("../");
-const fs = require("fs");
-const path = require("path");
-const { expect } = require("chai");
+import { Formatter } from "../src/formatter.js";
+import fs from "fs";
+import path from "path";
+import chai from "chai";
+
+const expect = chai.expect;
 
 //-----------------------------------------------------------------------------
 // Formatter Configs

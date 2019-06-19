@@ -32,11 +32,6 @@ module.exports ={
             files:["tests/*.js"],
             env:{
                 mocha:true,
-                commonjs:true,
-                node:true
-            },
-            parserOptions:{
-                sourceType:"script"
             }
         }
     ]
