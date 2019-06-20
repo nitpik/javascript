@@ -36,14 +36,23 @@ describe("Formatter", () => {
 
     xdescribe("One-offs", () => {
         it("should not add a semicolon after last export", () => {
-            const source = "export { bing} from \"bar\" ;";
+            const source = `
+module.exports = {         
+    colors :["red" ,"green" ,"blue"],
+        name :'esfmt',
+    doSomething(){
+    // some comment
+        return   'I said, "hi!"'
+    }
+}
+`.trim();
             const formatter = new Formatter({
                 layout: {
                 },
                 tasks: []
             });
             const result = formatter.format(source);
-            expect(result).to.deep.equal("export { bing } from \"bar\";");
+            expect(result).to.deep.equal("module.exports = {");
 
         });
     });

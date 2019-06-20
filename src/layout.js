@@ -7,7 +7,7 @@
 // Imports
 //-----------------------------------------------------------------------------
 
-import { OrderedSet } from "@humanwhocodes/ordered-set";
+import { CodeParts } from "./util/code-parts.js";
 import { Visitor, TaskVisitor } from "./visitors.js";
 import semicolonsTask from "./tasks/semicolons.js";
 import spacesTask from "./tasks/spaces.js";
@@ -40,22 +40,6 @@ function isWhitespace(c) {
 //-----------------------------------------------------------------------------
 // Helpers
 //-----------------------------------------------------------------------------
-
-class CodeParts extends OrderedSet {
-
-    isWhitespace(part) {
-        return part.type === "Whitespace";
-    }
-
-    isLineBreak(part) {
-        return part.type === "LineBreak";
-    }
-
-    isIndent(part) {
-        const previous = this.previous(part);
-        return Boolean(previous && this.isLineBreak(part));
-    }
-}
 
 function convertString(value, quotes) {
 
@@ -133,7 +117,7 @@ function createParts({ast, text}, options) {
                 rangeParts.set(startIndex, parts.last());
 
                 // if there is whitespace before LineBreak, delete it
-                if (previous && previous.type === "Whitespace") {
+                if (previous && parts.isWhitespace(previous)) {
                     parts.delete(previous);
                 }
                 
@@ -152,7 +136,7 @@ function createParts({ast, text}, options) {
                  * to a single space.
                  */
                 const previous = parts.last();
-                const value = previous.type === "LineBreak"
+                const value = parts.isLineBreak(previous)
                     ? text.slice(startIndex, index)
                     : " ";
 
@@ -189,18 +173,17 @@ function normalizeIndents(parts, options) {
 
             // get previous part to fix indent
             const maybeIndentPart = parts.previous(part);
-            const maybeNewLinePart = parts.previous(maybeIndentPart);
 
-            if (maybeIndentPart.type === "Whitespace" && maybeNewLinePart.type === "LineBreak") {
+            if (parts.isIndent(maybeIndentPart)) {
                 maybeIndentPart.value = indent.repeat(indentLevel);
             }
         }
 
         // first Whitespace after LineBreak is an indent
-        if (part.type === "LineBreak") {
+        if (parts.isLineBreak(part)) {
             part = parts.next(part);
 
-            if (part && part.type === "Whitespace") {
+            if (part && parts.isWhitespace(part)) {
                 part.value = indent.repeat(indentLevel);
             }
         }
