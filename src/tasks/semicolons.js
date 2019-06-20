@@ -44,7 +44,7 @@ export default function(context) {
             }
         },
         VariableDeclaration(node) {
-            // todo
+            adjustSemicolon(node);
         }
 
     }

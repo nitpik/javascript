@@ -34,6 +34,20 @@ const baseConfig = {
 
 describe("Formatter", () => {
 
+    xdescribe("One-offs", () => {
+        it("should not add a semicolon after last export", () => {
+            const source = "export { bing} from \"bar\" ;";
+            const formatter = new Formatter({
+                layout: {
+                },
+                tasks: []
+            });
+            const result = formatter.format(source);
+            expect(result).to.deep.equal("export { bing } from \"bar\";");
+
+        });
+    });
+
     describe("fixtures", () => {
         const formatterFixturesPath = "./tests/fixtures/formatter";
         fs.readdirSync(formatterFixturesPath).forEach(fileName => {

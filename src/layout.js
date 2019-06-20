@@ -251,6 +251,16 @@ export class Layout {
              */
             if (last.value === ";") {
                 last = parts.previous(last);
+
+                /*
+                 * If a node's last token was previously a semicolon, it's
+                 * possible that it was preceded by whitespace. Whitespace
+                 * between a token and a semicolon insignificant (and often a
+                 * typo), so adjust the last token one more time.
+                 */
+                if (parts.isWhitespace(last)) {
+                    last = parts.previous(last);
+                }
             }
 
             // automatically remove empty statements
@@ -361,7 +371,6 @@ export class Layout {
         const next = this.parts.next(part);
         if (next) {
             if (next.type !== "Punctuator" || next.value !== ";") {
-                console.dir(next);
                 this.parts.insertAfter({
                     type: "Punctuator",
                     value: ";"
