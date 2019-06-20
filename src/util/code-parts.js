@@ -13,6 +13,9 @@ import { OrderedSet } from "@humanwhocodes/ordered-set";
 // Exports
 //-----------------------------------------------------------------------------
 
+/**
+ * A doubly-linked list representing the parts of source code.
+ */
 export class CodeParts extends OrderedSet {
 
     /**

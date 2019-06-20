@@ -1,0 +1,7 @@
+{}
+---
+const greeting = 'Hello world!';
+const line = 'She didn\'t say, "hi."';
+---
+const greeting = "Hello world!";
+const line = "She didn't say, \"hi.\"";

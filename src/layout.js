@@ -29,8 +29,9 @@ const WHITESPACE = /\s/;
 const NEWLINE = /[\r\n\u2028\u2029]/;
 
 const QUOTES = new Map([
-    ["double", "\""],
-    ["single", "'"]
+    ["double", { value: "\"", alternates: ["'", "`"] }],
+    ["single", { value: "'", alternates: ["\"", "`"] }],
+    ["backtick", { value: "`", alternates: ["\"", "'"] }]
 ]);
 
 function isWhitespace(c) {
@@ -43,14 +44,24 @@ function isWhitespace(c) {
 
 function convertString(value, quotes) {
 
-    const desiredQuotes = QUOTES.get(quotes);
+    const { value: desiredQuotes, alternates } = QUOTES.get(quotes);
 
     // Special case: Already the correct quote style
     if (value.charAt(0) === desiredQuotes) {
         return value;
     }
 
-    return desiredQuotes + value.slice(1, -1).replace(new RegExp(desiredQuotes, "g"), "\\" + desiredQuotes) + desiredQuotes;
+    // strip off the start and end quotes
+    let newValue = value.slice(1, -1)
+
+        // escape any instances of the desired quotes
+        .replace(new RegExp(desiredQuotes, "g"), "\\" + desiredQuotes)
+
+        // unescape any isntances of alternate quotes
+        .replace(new RegExp(`\\\\([${alternates.join("")}])`, "g"), "$1");
+
+    // add back on the desired quotes
+    return desiredQuotes + newValue + desiredQuotes;
 }
 
 function createParts({ast, text}, options) {
