@@ -26,7 +26,7 @@ const DEFAULT_OPTIONS = {
 
 // TODO: Fix whitespace regex
 const WHITESPACE = /\s/;
-const NEWLINE = /[\r\n]/;
+const NEWLINE = /[\r\n\u2028\u2029]/;
 
 const QUOTES = new Map([
     ["double", "\""],
@@ -56,6 +56,7 @@ function convertString(value, quotes) {
 function createParts({ast, text}, options) {
     const parts = new CodeParts();
     const rangeParts = new Map();
+    const originalIndents = new Map();
 
     const { tokens, comments } = ast;
     let commentIndex = 0, tokenIndex = 0;
@@ -67,13 +68,19 @@ function createParts({ast, text}, options) {
 
         // next part is a comment
         if (comment && comment.range[0] === index) {
-            parts.add({
+            const newPart = {
                 type: comment.type === "Line" ? "LineComment" : "BlockComment",
                 value: text.slice(comment.range[0], comment.range[1])
-            });
+            };
+            const previousPart = parts.last();
+            parts.add(newPart);
             index = comment.range[1];
             rangeParts.set(comment.range[0], parts.last());
             commentIndex++;
+
+            if (parts.isIndent(previousPart)) {
+                originalIndents.set(newPart, previousPart.value);
+            }
             continue;
         }
 
@@ -154,10 +161,37 @@ function createParts({ast, text}, options) {
 
     }
 
-    return {parts, rangeParts};
+    return {parts, rangeParts, originalIndents};
 }
 
-function normalizeIndents(parts, options) {
+function indentBlockComment(part, parts, options, originalIndents) {
+
+    const previousIndent = parts.findPreviousIndent(part);
+    if (previousIndent && NEWLINE.test(part.value)) {
+
+        // first normalize the new lines and replace with the user preference
+        let newValue = part.value
+            .replace(/\r\n/g, "\n")
+            .replace(NEWLINE, options.eol);
+
+        const originalIndent = originalIndents.get(part) || "";
+        part.value = newValue.split(options.eol).map((line, index) => {
+
+            /*
+             * The first line should never be adjusted because the indent
+             * is already in the file right before the comment. Similarly,
+             * other lines that don't already contain the original indent
+             * should be left alone because they have weird spacing.
+             */
+            return index === 0 || !line.startsWith(originalIndent)
+                ? line
+                : previousIndent.value + line.slice(originalIndent.length);
+        }).join(options.eol);
+    }
+
+}
+
+function normalizeIndents(parts, options, originalIndents) {
     const indent = (typeof options.indent === "number") ? " ".repeat(options.indent) : options.indent;
     let indentLevel = 0;
     let part = parts.first();
@@ -179,14 +213,32 @@ function normalizeIndents(parts, options) {
             }
         }
 
-        // first Whitespace after LineBreak is an indent
-        if (parts.isLineBreak(part)) {
-            part = parts.next(part);
+        if (parts.isIndent(part)) {
+            part.value = indent.repeat(indentLevel);
+        } else if (indentLevel > 0 && parts.isLineBreak(part)) {
+            
+            /*
+             * If we made it here, it means that there's an indent missing.
+             * Any line break should be immediately followed by whitespace
+             * whenever the `indentLevel` is greater than zero. So, here
+             * we add in the missing whitespace and set it to the appropriate
+             * indent.
+             * 
+             * Note that if the next part is a line break, that means the line
+             * is empty and no extra whitespace should be added.
+             */
+            const peekPart = parts.next(part);
 
-            if (part && parts.isWhitespace(part)) {
-                part.value = indent.repeat(indentLevel);
+            if (!parts.isWhitespace(peekPart) && !parts.isLineBreak(peekPart)) {
+                parts.insertBefore({
+                    type: "Whitespace",
+                    value: indent.repeat(indentLevel)
+                }, peekPart);
             }
+        } else if (parts.isBlockComment(part)) {
+            indentBlockComment(part, parts, options, originalIndents);
         }
+
         part = parts.next(part);
     }
 }
@@ -202,8 +254,8 @@ export class Layout {
             ...options
         };
 
-        const { parts, rangeParts } = createParts(sourceCode, this.options);
-        normalizeIndents(parts, this.options);
+        const { parts, rangeParts, originalIndents } = createParts(sourceCode, this.options);
+        normalizeIndents(parts, this.options, originalIndents);
 
         this.parts = parts;
         this.rangeParts = rangeParts;

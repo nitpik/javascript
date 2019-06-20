@@ -34,6 +34,24 @@ export class CodeParts extends OrderedSet {
     }
 
     /**
+     * Determines if a given code part is a line comment.
+     * @param {CodePart} part The code part to check.
+     * @returns {boolean} True if the code part is a line comment, false if not.
+     */
+    isLineComment(part) {
+        return part.type === "LineComment";
+    }
+
+    /**
+     * Determines if a given code part is a block comment.
+     * @param {CodePart} part The code part to check.
+     * @returns {boolean} True if the code part is a block comment, false if not.
+     */
+    isBlockComment(part) {
+        return part.type === "BlockComment";
+    }
+
+    /**
      * Determines if a given code part is line break.
      * @param {CodePart} part The code part to check.
      * @returns {boolean} True if the code part is a line break, false if not.
@@ -60,8 +78,8 @@ export class CodeParts extends OrderedSet {
      */
     findPreviousIndent(part) {
         let previous = this.previous(part);
-        while (!this.isIndent(previous)) {
-            previous = this.previous(part);
+        while (previous && !this.isIndent(previous)) {
+            previous = this.previous(previous);
         }
         return previous;
     }

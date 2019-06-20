@@ -1,0 +1,47 @@
+{}
+---
+/* block comment */
+// line comment
+/* block
+comment 2 */
+
+if (foo) {
+bar();
+// line comment 2
+
+/*
+ * Block comment 3
+ */
+    while (something) {
+        /*
+    block comment 4
+    */
+
+            /*
+            block comment 5
+            */
+    }
+}
+---
+/* block comment */
+// line comment
+/* block
+comment 2 */
+
+if (foo) {
+    bar();
+    // line comment 2
+
+    /*
+     * Block comment 3
+     */
+    while (something) {
+        /*
+    block comment 4
+    */
+
+        /*
+        block comment 5
+        */
+    }
+}
