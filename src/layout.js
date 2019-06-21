@@ -355,7 +355,7 @@ export class Layout {
 
         const previous = this.parts.previous(part);
         if (previous) {
-            if (this.parts.isWhitespace(previous)) {
+            if (this.parts.isWhitespace(previous) && !this.parts.isIndent(previous)) {
                 previous.value = " ";
             } else if (!this.parts.isLineBreak(previous)) {
                 this.parts.insertBefore({

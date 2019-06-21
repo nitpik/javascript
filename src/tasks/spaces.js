@@ -33,6 +33,17 @@ function normalizePunctuatorSpacing(layout) {
     }
 }
 
+function spaceKeywordAndBrace(node, bodyKey, layout) {
+    const firstToken = layout.getFirstCodePart(node);
+    layout.spaceAfter(firstToken);
+
+    const braceToken = layout.getFirstCodePart(node[bodyKey]);
+    if (braceToken.value === "{") {
+        layout.spaceBefore(braceToken);
+    }
+
+}
+
 //-----------------------------------------------------------------------------
 // Task
 //-----------------------------------------------------------------------------
@@ -41,48 +52,11 @@ export default function(context) {
     const layout = context.layout;
 
     // first, adjust all commas
-    normalizePunctuatorSpacing(layout)
+    normalizePunctuatorSpacing(layout);
 
 
     return {
-        UpdateExpression(node) {
-            if (node.prefix) {
-                const operatorToken = layout.getFirstCodePart(node);
-                layout.noSpaceAfter(operatorToken);
-            } else {
-                const operatorToken = layout.getLastCodePart(node);
-                layout.noSpaceBefore(operatorToken);
-            }
-        },
-        UnaryExpression(node) {
-            this.UpdateExpression(node);
-        },
-        BinaryExpression(node) {
-            const firstToken = layout.getFirstCodePart(node);
-            const operatorToken = layout.findNext(node.operator, firstToken);
-            layout.spaces(operatorToken);
-        },
-        LogicalExpression(node) {
-            this.BinaryExpression(node);
-        },
-        ImportDeclaration(node) {
-            if (node.specifiers.some(node => node.type === "ImportSpecifier")) {
-                const firstToken = layout.getFirstCodePart(node);
 
-                // adjust spaces around braces
-                layout.spaceAfter(layout.findNext("{", firstToken));
-                layout.spaceBefore(layout.findNext("}", firstToken));
-            }
-        },
-        ExportNamedDeclaration(node) {
-            if (node.specifiers.length) {
-                const firstToken = layout.getFirstCodePart(node);
-
-                // adjust spaces around braces
-                layout.spaceAfter(layout.findNext("{", firstToken));
-                layout.spaceBefore(layout.findNext("}", firstToken));
-            }
-        },
         ArrayExpression(node) {
             if (node.loc.start.line === node.loc.end.line) {
                 if (node.elements.length) {
@@ -96,15 +70,180 @@ export default function(context) {
                 }
             }
         },
-        ReturnStatement(node) {
-            if (node.argument) {
-                layout.spaceBefore(node.argument);
+
+        ArrowFunctionExpression(node) {
+    
+            let openParenToken, closeParenToken;
+            const firstToken = layout.getFirstCodePart(node);
+    
+            if (node.async) {
+                layout.spaceAfter(firstToken);
+            }
+    
+            if (node.params.length === 0) {
+    
+                openParenToken = node.async
+                    ? layout.findNext("(", firstToken)
+                    : firstToken;
+    
+                closeParenToken = layout.findNext(")", openParenToken);
+            } else if (node.params.length === 1) {
+                
+                if (node.async) {
+                    layout.spaceAfter(firstToken);
+                    openParenToken = layout.findPrevious(part => {
+                        return part === firstToken || part.value === "(";
+                    }, node.params[0]);
+                    
+                    if (openParenToken.value !== "(") {
+                        openParenToken = null;
+                    } else {
+                        closeParenToken = layout.findNext(")", node.params[0]);
+                    }
+    
+                } else {
+                    if (firstToken.value === "(") {
+                        openParenToken = firstToken;
+                        closeParenToken = layout.findNext(")", node.params[0]);
+                    }
+                }
+    
             } else {
-                layout.noSpaceAfter(node);
+    
+                openParenToken = node.async
+                    ? layout.findNext("(", firstToken)
+                    : firstToken;
+    
+                closeParenToken = layout.findNext(")", node.params[node.params.length - 1]);
+            }
+    
+            if (openParenToken) {
+                // have to do both in case there's a comment inside
+                layout.noSpaceAfter(openParenToken);
+                layout.noSpaceBefore(closeParenToken);
+            }
+        },
+
+
+        AwaitExpression(node) {
+            const firstToken = layout.getFirstCodePart(node);
+            layout.spaceAfter(firstToken);
+        },
+
+        BinaryExpression(node) {
+            const firstToken = layout.getFirstCodePart(node);
+            const operatorToken = layout.findNext(node.operator, firstToken);
+            layout.spaces(operatorToken);
+        },
+
+        ConditionalExpression(node) {
+            const questionMark = layout.findPrevious("?", node.consequent);
+            const colon = layout.findNext(":", node.consequent);
+
+            layout.spaces(questionMark);
+            layout.spaces(colon);
+        },
+
+        DoWhileStatement(node) {
+            spaceKeywordAndBrace(node, "body", layout);
+
+            const whileToken = layout.findPrevious("while", node.test);
+            layout.spaces(whileToken);
+        },
+
+        ExportNamedDeclaration(node) {
+            const firstToken = layout.getFirstCodePart(node);
+            layout.spaceAfter(firstToken);
+
+            if (node.specifiers.length) {
+
+                // adjust spaces around braces
+                layout.spaceAfter(layout.findNext("{", firstToken));
+                layout.spaceBefore(layout.findNext("}", firstToken));
+            }
+        },
+
+        ForStatement(node) {
+            spaceKeywordAndBrace(node, "body", layout);
+        },
+
+        ForInStatement(node) {
+            this.ForStatement(node);
+        },
+
+        ForOfStatement(node) {
+            this.ForStatement(node);
+        },
+
+        FunctionDeclaration(node, parent) {
+            this.FunctionExpression(node, parent);
+        },
+
+        FunctionExpression(node, parent) {
+
+            // ESTree quirk: concise methods don't have "function" keyword
+            const isConcise = (parent.type === "Property" && parent.method);
+            let firstToken = layout.getFirstCodePart(node);
+            let keyword = isConcise ? firstToken : null;
+            let id = isConcise ? parent.key : node.id;
+
+            // if it's async, there's another keyword
+            if (node.async) {
+                if (isConcise) {
+                    // TODO
+                } else {
+                    keyword = layout.findNext("function", keyword);
+                    layout.spaceAfter(firstToken);
+                }
             }
 
-            layout.semicolonAfter(node);
+            if (keyword) {
+                if (id) {
+                    layout.spaceAfter(keyword);
+                } else {
+                    layout.noSpaceAfter(keyword);
+                }
+            }
+            
+            const openParen = isConcise ? firstToken : layout.findNext("(", firstToken);
+            layout.noSpaces(openParen);
+
+            const openBrace = layout.getFirstCodePart(node.body);
+            layout.spaceBefore(openBrace);
+
+            const closeParen = layout.findPrevious(")", openBrace);
+            layout.noSpaceBefore(closeParen);
+
         },
+        
+        IfStatement(node) {
+            spaceKeywordAndBrace(node, "consequent", layout);
+
+            if (node.alternate) {
+                const elseToken = layout.findPrevious("else", node.alternate);
+                layout.spaces(elseToken);
+            }
+        },
+
+        ImportDeclaration(node) {
+            const firstToken = layout.getFirstCodePart(node);
+            layout.spaceAfter(firstToken);
+
+            const fromToken = layout.findPrevious("from", node.source);
+            layout.spaces(fromToken);
+
+            if (node.specifiers.some(node => node.type === "ImportSpecifier")) {
+
+                // adjust spaces around braces
+                layout.spaceAfter(layout.findNext("{", firstToken));
+                layout.spaceBefore(layout.findNext("}", firstToken));
+            }
+        },
+
+        LogicalExpression(node) {
+            this.BinaryExpression(node);
+        },
+
         Property(node) {
 
             // ensure there's a space after the colon in properties
@@ -116,8 +255,79 @@ export default function(context) {
             if (node.method) {
                 layout.spaceBefore(node.value.body);
             }
-        }
+        },
 
+        ReturnStatement(node) {
+            if (node.argument) {
+                layout.spaceBefore(node.argument);
+            } else {
+                layout.noSpaceAfter(node);
+            }
+        },
+
+        SwitchStatement(node) {
+            const firstToken = layout.getFirstCodePart(node);
+            layout.spaceAfter(firstToken);
+
+            const braceToken = layout.findNext("{", node.discriminant);
+            layout.spaceBefore(braceToken);
+        },
+
+        SwitchCase(node) {
+            const colon = layout.findPrevious(":", node.consequent[0]);
+            layout.noSpaceBefore(colon);
+            layout.spaceAfter(colon);
+        },
+
+        ThrowStatement(node) {
+            const firstToken = layout.getFirstCodePart(node);
+            layout.spaceAfter(firstToken);
+        },
+
+        TryStatement(node) {
+            spaceKeywordAndBrace(node, "block", layout);
+
+            const catchToken = layout.getFirstCodePart(node.handler);
+            layout.spaces(catchToken);
+
+            const catchBraceToken = layout.getFirstCodePart(node.handler.body);
+            layout.spaceBefore(catchBraceToken);
+
+            if (node.finalizer) {
+                const finallyBraceToken = layout.getFirstCodePart(node.finalizer);
+                const finallyToken = layout.findPrevious("finally", finallyBraceToken);
+                layout.spaces(finallyToken);
+            }
+        },
+
+        UpdateExpression(node) {
+            if (node.prefix) {
+                const operatorToken = layout.getFirstCodePart(node);
+                layout.noSpaceAfter(operatorToken);
+            } else {
+                const operatorToken = layout.getLastCodePart(node);
+                layout.noSpaceBefore(operatorToken);
+            }
+        },
+
+        UnaryExpression(node) {
+            this.UpdateExpression(node);
+        },
+
+        VariableDeclaration(node) {
+            const firstToken = layout.getFirstCodePart(node);
+            layout.spaceAfter(firstToken);
+        },
+        
+        WhileStatement(node) {
+            spaceKeywordAndBrace(node, "body", layout);
+        },
+
+        YieldExpression(node) {
+            const firstToken = layout.getFirstCodePart(node);
+            layout.spaceAfter(firstToken);
+        },
+        
     };
 
 }

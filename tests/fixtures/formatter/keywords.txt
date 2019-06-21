@@ -1,0 +1,147 @@
+{}
+---
+import{bar}from"baz";
+export{bar};
+
+if(foo){
+    bar();
+}else{
+    baz();
+}
+
+while(foo){
+    bar();
+}
+
+for(let i=0;i<10;i ++) {
+    bar(i);
+}
+
+do{
+    bar();
+}while(baz);
+
+for(x in  b) {
+    bar();
+}
+
+for(x   of  b) {
+    bar();
+}
+
+function  bang() {
+    bar();
+}
+
+async  function  bing() {
+    return   bar();
+}
+
+switch(foo){
+    case  "a"  : b();
+    default : c();
+}
+
+try{
+    bar()
+}catch(ex){
+    baz();
+}finally{
+    // whatever
+}
+
+const x = function () {
+    bar();
+},y=5;
+
+throw   (foo);
+throw(bar);
+
+function *gen   (){
+    yield(5);
+}
+
+function *gen2   (){
+  yield    5;
+}
+
+async   function    fetch  () {
+    await(5);
+}
+
+async   function    fetch2  () {
+await    5;
+}
+---
+import { bar } from "baz";
+export { bar };
+
+if (foo) {
+    bar();
+} else {
+    baz();
+}
+
+while (foo) {
+    bar();
+}
+
+for (let i = 0; i < 10; i++) {
+    bar(i);
+}
+
+do {
+    bar();
+} while (baz);
+
+for (x in b) {
+    bar();
+}
+
+for (x of b) {
+    bar();
+}
+
+function bang() {
+    bar();
+}
+
+async function bing() {
+    return bar();
+}
+
+switch (foo) {
+    case "a": b();
+    default: c();
+}
+
+try {
+    bar();
+} catch (ex) {
+    baz();
+} finally {
+    // whatever
+}
+
+const x = function() {
+    bar();
+}, y = 5;
+
+throw (foo);
+throw (bar);
+
+function *gen() {
+    yield (5);
+}
+
+function *gen2() {
+    yield 5;
+}
+
+async function fetch() {
+    await (5);
+}
+
+async function fetch2() {
+    await 5;
+}
