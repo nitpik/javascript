@@ -66,7 +66,6 @@ function convertString(value, quotes) {
 
 function createParts({ast, text}, options) {
     const parts = new CodeParts();
-    const rangeParts = new Map();
     const originalIndents = new Map();
 
     const { tokens, comments } = ast;
@@ -81,12 +80,12 @@ function createParts({ast, text}, options) {
         if (comment && comment.range[0] === index) {
             const newPart = {
                 type: comment.type === "Line" ? "LineComment" : "BlockComment",
-                value: text.slice(comment.range[0], comment.range[1])
+                value: text.slice(comment.range[0], comment.range[1]),
+                range: comment.range
             };
             const previousPart = parts.last();
             parts.add(newPart);
             index = comment.range[1];
-            rangeParts.set(comment.range[0], parts.last());
             commentIndex++;
 
             if (parts.isIndent(previousPart)) {
@@ -107,7 +106,6 @@ function createParts({ast, text}, options) {
 
             parts.add(newToken);
             index = newToken.range[1];
-            rangeParts.set(newToken.range[0], newToken);
             tokenIndex++;
             continue;
         }
@@ -128,11 +126,10 @@ function createParts({ast, text}, options) {
 
                 parts.add({
                     type: "LineBreak",
-                    value: options.eol
+                    value: options.eol,
+                    range: [startIndex, ++index]
                 });
 
-                index++;
-                rangeParts.set(startIndex, parts.last());
 
                 // if there is whitespace before LineBreak, delete it
                 if (previous && parts.isWhitespace(previous)) {
@@ -160,10 +157,9 @@ function createParts({ast, text}, options) {
 
                 parts.add({
                     type: "Whitespace",
-                    value
+                    value,
+                    range: [startIndex, index]
                 });
-
-                rangeParts.set(startIndex, parts.last());
 
                 continue;
             }
@@ -172,7 +168,7 @@ function createParts({ast, text}, options) {
 
     }
 
-    return {parts, rangeParts, originalIndents};
+    return {parts, originalIndents};
 }
 
 function indentBlockComment(part, parts, options, originalIndents) {
@@ -265,18 +261,17 @@ export class Layout {
             ...options
         };
 
-        const { parts, rangeParts, originalIndents } = createParts(sourceCode, this.options);
+        const { parts, originalIndents } = createParts(sourceCode, this.options);
         normalizeIndents(parts, this.options, originalIndents);
 
         this.parts = parts;
-        this.rangeParts = rangeParts;
         let nodeParts = new Map();
         this.nodeParts = nodeParts;
 
         const visitor = new Visitor(espree.VisitorKeys);
         visitor.visit(sourceCode.ast, (node, parent) => {
 
-            const first = rangeParts.get(node.range[0]);
+            const first = parts.getByRangeStart(node.range[0]);
 
             /*
              * Program nodes and the body property of Program nodes won't
@@ -284,8 +279,8 @@ export class Layout {
              * the last token. We can just substitue the last code part in
              * that case.
              */
-            let last = rangeParts.get(node.range[1]) 
-                ? parts.previous(rangeParts.get(node.range[1]))
+            let last = parts.getByRangeStart(node.range[1]) 
+                ? parts.previous(parts.getByRangeStart(node.range[1]))
                 : parts.last();
 
             /*
@@ -419,7 +414,7 @@ export class Layout {
             if (next.type !== "Punctuator" || next.value !== ";") {
                 this.parts.insertAfter({
                     type: "Punctuator",
-                    value: ";"
+                    value: ";",
                 }, part);
             }
         } else {

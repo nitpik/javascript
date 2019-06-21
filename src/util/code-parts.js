@@ -10,6 +10,12 @@
 import { OrderedSet } from "@humanwhocodes/ordered-set";
 
 //-----------------------------------------------------------------------------
+// Private
+//-----------------------------------------------------------------------------
+
+const rangeStarts = Symbol("rangeStarts");
+
+//-----------------------------------------------------------------------------
 // Exports
 //-----------------------------------------------------------------------------
 
@@ -17,6 +23,91 @@ import { OrderedSet } from "@humanwhocodes/ordered-set";
  * A doubly-linked list representing the parts of source code.
  */
 export class CodeParts extends OrderedSet {
+
+    /**
+     * Creates a new instance.
+     */
+    constructor() {
+
+        super();
+
+        /**
+         * Keeps track of where in the source text that each code part starts.
+         * @property rangeStarts
+         * @type Map
+         * @private
+         */
+        this[rangeStarts] = new Map();
+    }
+
+    /**
+     * Adds a new code part and keeps track of its starting position.
+     * @param {CodePart} part The part to add.
+     * @returns {void}
+     */
+    add(part) {
+        super.add(part);
+        if (part.range) {
+            this[rangeStarts].set(part.range[0], part);
+        }
+    }
+
+    /**
+     * Deletes a new code part and its starting position.
+     * @param {CodePart} part The part to delete.
+     * @returns {void}
+     */
+    delete(part) {
+        super.delete(part);
+        if (part.range) {
+            this[rangeStarts].set(part.range[0], part);
+        }
+    }
+
+    /**
+     * Inserts a code part after a given code part that already exists in the
+     * set.
+     * @param {*} part The code part to insert.
+     * @param {*} relatedPart The code part after which to insert the new
+     *      code part.
+     * @returns {void}
+     * @throws {Error} If `part` is an invalid value for the set.
+     * @throws {Error} If `part` already exists in the set.
+     * @throws {Error} If `relatedPart` does not exist in the set.
+     */
+    insertAfter(part, relatedPart) {
+        super.insertAfter(part, relatedPart);
+        if (part.range) {
+            this[rangeStarts].set(part.range[0], part);
+        }
+    }
+
+    /**
+     * Inserts a code part before a given code part that already exists in the
+     * set.
+     * @param {*} part The code part to insert.
+     * @param {*} relatedPart The code part before which to insert the new
+     *      code part.
+     * @returns {void}
+     * @throws {Error} If `part` is an invalid value for the set.
+     * @throws {Error} If `part` already exists in the set.
+     * @throws {Error} If `relatedPart` does not exist in the set.
+     */
+    insertBefore(part, relatedPart) {
+        super.insertBefore(part, relatedPart);
+        if (part.range) {
+            this[rangeStarts].set(part.range[0], part);
+        }
+    }
+
+    /**
+     * Gets the code part that begins at the given index in the source text.
+     * @param {int} start The range start. 
+     * @returns {CodePart} The code part is found or `undefined` if not.
+     */
+    getByRangeStart(start) {
+        return this[rangeStarts].get(start);
+    }
 
     /**
      * Determines if a given code part is a punctuator.
