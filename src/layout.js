@@ -387,6 +387,11 @@ export class Layout {
         }
     }
 
+    spaces(partOrNode) {
+        this.spaceAfter(partOrNode);
+        this.spaceBefore(partOrNode);
+    }
+
     noSpaceAfter(partOrNode) {
         let part = this.getLastCodePart(partOrNode);
 
@@ -403,6 +408,11 @@ export class Layout {
         if (previous && this.parts.isWhitespace(previous)) {
             this.parts.delete(previous);
         }
+    }
+
+    noSpaces(partOrNode) {
+        this.noSpaceAfter(partOrNode);
+        this.noSpaceBefore(partOrNode);
     }
 
     semicolonAfter(partOrNode) {

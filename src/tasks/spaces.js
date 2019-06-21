@@ -45,6 +45,26 @@ export default function(context) {
 
 
     return {
+        UpdateExpression(node) {
+            if (node.prefix) {
+                const operatorToken = layout.getFirstCodePart(node);
+                layout.noSpaceAfter(operatorToken);
+            } else {
+                const operatorToken = layout.getLastCodePart(node);
+                layout.noSpaceBefore(operatorToken);
+            }
+        },
+        UnaryExpression(node) {
+            this.UpdateExpression(node);
+        },
+        BinaryExpression(node) {
+            const firstToken = layout.getFirstCodePart(node);
+            const operatorToken = layout.findNext(node.operator, firstToken);
+            layout.spaces(operatorToken);
+        },
+        LogicalExpression(node) {
+            this.BinaryExpression(node);
+        },
         ImportDeclaration(node) {
             if (node.specifiers.some(node => node.type === "ImportSpecifier")) {
                 const firstToken = layout.getFirstCodePart(node);

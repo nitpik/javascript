@@ -63,7 +63,7 @@ export class TaskVisitor extends Visitor {
                     nodeTypes.set(key, []);
                 }
 
-                nodeTypes.get(key).push(visitor[key]);
+                nodeTypes.get(key).push(visitor[key].bind(visitor));
             });
         });
 
