@@ -351,6 +351,21 @@ export class Layout {
         return this.parts.previousToken(part);
     }
 
+    isFirstOnLine(startToken) {
+        let token = this.parts.previous(startToken);
+        while (token) {
+            if (this.parts.isLineBreak(token)) {
+                return true;
+            }
+
+            if (!this.parts.isComment(token) && !this.parts.isWhitespace(token)) {
+                return false;
+            }
+
+            token = this.parts.previous(token);
+        }
+    }
+
     getIndent(node) {
         const startToken = this.getFirstCodePart(node);
         let token = this.parts.previous(startToken);
@@ -367,10 +382,15 @@ export class Layout {
          */
         while (token) {
             if (this.parts.isIndent(token)) {
-                return token;
+                return { token };
             }
 
-            if (!token.type.endsWith("Comment")) {
+            // first on line but no indent
+            if (this.parts.isLineBreak(token)) {
+                return {};
+            }
+
+            if (!this.parts.isComment(token)) {
                 break;
             }
 
@@ -381,31 +401,34 @@ export class Layout {
     }
 
     indent(node) {
-        const indentToken = this.getIndent(node);
-        if (indentToken) {
-            const newIndent = indentToken.value + generateIndentString(this.options);
-            const { startToken, endToken } = this.boundaryTokens(node);
+        const indentPart = this.getIndent(node);
+        if (indentPart) {
+            let indentToken = indentPart.token;
+            const { first: firstToken, last: lastToken } = this.boundaryTokens(node);
 
-            indentToken.value = newIndent;
-            let token = startToken;
-            while (token !== endToken) {
-                if (this.parts.isIndent(token)) {
-                    token.value = newIndent;
+            // if there is no indent token, create one
+            if (!indentToken) {
+                indentToken = {
+                    type: "Whitespace",
+                    value: ""
+                };
+
+                const lineBreak = this.parts.findPreviousLineBreak(firstToken);
+                if (lineBreak) {
+                    this.parts.insertAfter(indentToken, lineBreak);
+                } else {
+                    console.dir(firstToken);
+                    this.parts.insertBefore(indentToken, firstToken);
                 }
-                token = this.parts.next(token);
             }
-        }
-    }
 
-    outdent(node) {
-        const indentToken = this.getIndent(node);
-        if (indentToken) {
-            const newIndent = indentToken.value.slice(generateIndentString(this.options).length);
-            const { startToken, endToken } = this.boundaryTokens(node);
-
+            // calculate new indent and update indent token
+            const newIndent = indentToken.value + generateIndentString(this.options);
             indentToken.value = newIndent;
-            let token = startToken;
-            while (token !== endToken) {
+
+            // find remaining indents in this node and update as well
+            let token = firstToken;
+            while (token !== lastToken) {
                 if (this.parts.isIndent(token)) {
                     token.value = newIndent;
                 }
@@ -415,10 +438,10 @@ export class Layout {
     }
 
     isMultiLine(node) {
-        const { startToken, endToken } = this.boundaryTokens(node);
-        let token = this.parts.next(startToken);
+        const { first: firstToken, last: lastToken } = this.boundaryTokens(node);
+        let token = this.parts.next(firstToken);
 
-        while (token !== endToken) {
+        while (token !== lastToken) {
             if (this.parts.isLineBreak(token)) {
                 return true;
             }

@@ -155,6 +155,15 @@ export class CodeParts extends OrderedSet {
     }
 
     /**
+     * Determines if a given code part is a comment.
+     * @param {CodePart} part The code part to check.
+     * @returns {boolean} True if the code part is a comment, false if not.
+     */
+    isComment(part) {
+        return this.isLineComment(part) || this.isBlockComment(part);
+    }
+
+    /**
      * Determines if a given code part is line break.
      * @param {CodePart} part The code part to check.
      * @returns {boolean} True if the code part is a line break, false if not.
@@ -182,6 +191,19 @@ export class CodeParts extends OrderedSet {
     findPreviousIndent(part) {
         let previous = this.previous(part);
         while (previous && !this.isIndent(previous)) {
+            previous = this.previous(previous);
+        }
+        return previous;
+    }
+
+    /**
+     * Finds the closest previous code part that represents a line break.
+     * @param {CodePart} part The part to start searching from. 
+     * @returns {CodePart} The code part if found or `undefined` if not.
+     */
+    findPreviousLineBreak(part) {
+        let previous = this.previous(part);
+        while (previous && !this.isLineBreak(previous)) {
             previous = this.previous(previous);
         }
         return previous;
