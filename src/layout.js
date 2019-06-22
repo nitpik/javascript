@@ -333,6 +333,30 @@ export class Layout {
         return this.parts.has(partOrNode) ? partOrNode : this.nodeParts.get(partOrNode).last;
     }
 
+    nextToken(part) {
+        return this.parts.nextToken(part);
+    }
+
+    previousToken(part) {
+        return this.parts.previousToken(part);
+    }
+
+    isMultiLine(node) {
+        const startToken = this.getFirstCodePart(node);
+        const endToken = this.getLastCodePart(node);
+        let token = this.parts.next(startToken);
+
+        while (token !== endToken) {
+            if (this.parts.isLineBreak(token)) {
+                return true;
+            }
+
+            token = this.parts.next(token);
+        }
+
+        return false;
+    }
+
     findNext(valueOrFunction, partOrNode) {
         const matcher = typeof valueOrFunction === "string"
             ? part => part.value === valueOrFunction

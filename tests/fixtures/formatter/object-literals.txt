@@ -1,0 +1,49 @@
+{}
+---
+module.exports = {         
+    colors :["red" ,"green" ,"blue"],
+        name :'esfmt',
+    doSomething(){
+    // some comment
+        return   'I said, "hi!"'
+    },
+    [ again ] ( ) {
+        return "yo"
+    }
+}
+
+    let name = "Nicholas";
+const x = {
+    name,
+    [ baz ] : "boom",
+    *doSomething  () {
+        // noop
+    },
+    async   doSomethingElse( ) {
+        await foo()
+    }
+}
+---
+module.exports = {
+    colors: [ "red", "green", "blue" ],
+    name: "esfmt",
+    doSomething() {
+        // some comment
+        return "I said, \"hi!\"";
+    },
+    [again]() {
+        return "yo";
+    }
+};
+
+let name = "Nicholas";
+const x = {
+    name,
+    [baz]: "boom",
+    *doSomething() {
+        // noop
+    },
+    async doSomethingElse() {
+        await foo();
+    }
+};

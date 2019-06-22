@@ -15,6 +15,15 @@ import { OrderedSet } from "@humanwhocodes/ordered-set";
 
 const rangeStarts = Symbol("rangeStarts");
 
+const syntaxTokens = new Set([
+    "Keyword",
+    "String",
+    "Numeric",
+    "Boolean",
+    "Punctuator",
+    "Null"
+]);
+
 //-----------------------------------------------------------------------------
 // Exports
 //-----------------------------------------------------------------------------
@@ -176,5 +185,23 @@ export class CodeParts extends OrderedSet {
             previous = this.previous(previous);
         }
         return previous;
+    }
+
+    /**
+     * Returns the next non-whitespace, non-comment token after the given part.
+     * @param {CodePart} startToken The part to search after.
+     * @returns {CodePart} The next part or `undefined` if no more parts.
+     */
+    nextToken(startToken) {
+        return this.findNext(token => syntaxTokens.has(token.type), startToken);
+    }
+
+    /**
+     * Returns the previous non-whitespace, non-comment token before the given part.
+     * @param {CodePart} startToken The part to search before.
+     * @returns {CodePart} The previous part or `undefined` if no more parts.
+     */
+    previousToken(startToken) {
+        return this.findPrevious(token => syntaxTokens.has(token.type), startToken);
     }
 }

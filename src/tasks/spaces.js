@@ -58,7 +58,12 @@ export default function(context) {
     return {
 
         ArrayExpression(node) {
-            if (node.loc.start.line === node.loc.end.line) {
+            
+            const firstToken = layout.getFirstCodePart(node);
+            
+            if (layout.isMultiLine(node)) {
+                // TODO
+            } else {
                 if (node.elements.length) {
 
                     node.elements.forEach(element => {
@@ -67,6 +72,8 @@ export default function(context) {
                     });
 
                     layout.spaceAfter(node.elements[node.elements.length - 1]);
+                } else {
+                    layout.noSpaceAfter(firstToken);
                 }
             }
         },
@@ -182,38 +189,75 @@ export default function(context) {
         FunctionExpression(node, parent) {
 
             // ESTree quirk: concise methods don't have "function" keyword
-            const isConcise = (parent.type === "Property" && parent.method);
-            let firstToken = layout.getFirstCodePart(node);
-            let keyword = isConcise ? firstToken : null;
-            let id = isConcise ? parent.key : node.id;
+            const isConcise =
+                (parent.type === "Property" && parent.method) ||
+                (parent.type === "MethodDefinition");
+            let token = layout.getFirstCodePart(node);
+            let id, openParen;
 
-            // if it's async, there's another keyword
-            if (node.async) {
-                if (isConcise) {
-                    // TODO
-                } else {
-                    keyword = layout.findNext("function", keyword);
-                    layout.spaceAfter(firstToken);
+            if (!isConcise) {
+                
+                // "async" keyword
+                if (token.value === "async") {
+                    layout.spaceAfter(token);
+                    token = layout.nextToken(token);
                 }
+
+                // "function" keyword
+                layout.spaceAfter(token);
+                token = layout.nextToken(token);
+
+                // "*" punctuator
+                if (token.value === "*") {
+                    layout.noSpaceAfter(token);
+                    token = layout.nextToken(token);
+                }
+
+                // function name
+                if (token.type === "Identifier") {
+                    layout.noSpaceAfter(token);
+                    token = layout.nextToken(token);
+                }
+                
+                if (token.value === "(") {
+                    openParen = token;
+                } else {
+                    throw new Error(`Unexpected token "${token.value}".`);
+                }
+            } else {
+                let idStart = layout.getFirstCodePart(parent.key);
+                id = idStart;
+
+                if (parent.computed) {
+                    const leftBracket = layout.previousToken(idStart);
+                    layout.noSpaceAfter(leftBracket);
+
+                    const rightBracket = layout.nextToken(idStart);
+                    layout.noSpaceBefore(rightBracket);
+
+                    idStart = leftBracket;
+                    id = rightBracket;
+                }
+
+                if (parent.generator) {
+                    const star = layout.previousToken(idStart);
+                    layout.noSpaceAfter(star);
+                }
+
+                openParen = token;
             }
 
-            if (keyword) {
-                if (id) {
-                    layout.spaceAfter(keyword);
-                } else {
-                    layout.noSpaceAfter(keyword);
-                }
+            if (id) {
+                layout.noSpaceAfter(id);
             }
             
-            const openParen = isConcise ? firstToken : layout.findNext("(", firstToken);
             layout.noSpaces(openParen);
 
             const openBrace = layout.getFirstCodePart(node.body);
             layout.spaceBefore(openBrace);
-
+            
             const closeParen = layout.findPrevious(")", openBrace);
             layout.noSpaceBefore(closeParen);
-
         },
         
         IfStatement(node) {
@@ -244,12 +288,29 @@ export default function(context) {
             this.BinaryExpression(node);
         },
 
+        MethodDefinition(node) {
+            this.FunctionExpression(node.value, node);
+        },
+
         Property(node) {
 
             // ensure there's a space after the colon in properties
             if (!node.shorthand && !node.method) {
+
                 layout.spaceBefore(node.value);
-                layout.noSpaceAfter(node.key);
+                
+                // also be sure to check spacing of computed properties
+                if (node.computed) {
+                    const firstToken = layout.getFirstCodePart(node.key);
+                    const openBracket = layout.findPrevious("[", firstToken);
+                    const closeBracket = layout.findNext("]", firstToken);
+                    
+                    layout.noSpaceAfter(openBracket);
+                    layout.noSpaceBefore(closeBracket);
+                    layout.noSpaceAfter(closeBracket);
+                } else {
+                    layout.noSpaceAfter(node.key);
+                }
             }
 
             if (node.method) {

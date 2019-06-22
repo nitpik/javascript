@@ -1,0 +1,49 @@
+{}
+---
+class Foo {
+    constructor() {
+        this.name  = "foo"
+    }
+
+    static getFoo ( ) {
+        return  this;
+    }
+};
+
+class   Bar  extends Foo {
+    *values ( )  {
+        return [ ];
+    }
+
+    [ baz ] ( b ){
+        return b;
+    }
+
+    async fetch  (a){
+        await   foo(a)
+    }
+}
+---
+class Foo {
+    constructor() {
+        this.name = "foo";
+    }
+
+    static getFoo() {
+        return this;
+    }
+}
+
+class Bar extends Foo {
+    *values() {
+        return [];
+    }
+
+    [baz](b) {
+        return b;
+    }
+
+    async fetch(a) {
+        await foo(a);
+    }
+}
