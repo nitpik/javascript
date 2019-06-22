@@ -11,6 +11,7 @@ import { CodeParts } from "./util/code-parts.js";
 import { Visitor, TaskVisitor } from "./visitors.js";
 import semicolonsTask from "./tasks/semicolons.js";
 import spacesTask from "./tasks/spaces.js";
+import indentsTask from "./tasks/indents.js";
 import espree from "espree";
 
 //-----------------------------------------------------------------------------
@@ -198,8 +199,12 @@ function indentBlockComment(part, parts, options, originalIndents) {
 
 }
 
+function generateIndentString(options) {
+    return (typeof options.indent === "number") ? " ".repeat(options.indent) : options.indent;
+}
+
 function normalizeIndents(parts, options, originalIndents) {
-    const indent = (typeof options.indent === "number") ? " ".repeat(options.indent) : options.indent;
+    const indent = generateIndentString(options);
     let indentLevel = 0;
     let part = parts.first();
 
@@ -322,6 +327,7 @@ export class Layout {
         const tasks = new TaskVisitor(espree.VisitorKeys);
         tasks.addTask(semicolonsTask);
         tasks.addTask(spacesTask);
+        tasks.addTask(indentsTask);
         tasks.visit(sourceCode.ast, { layout: this });
     }
 
@@ -333,6 +339,10 @@ export class Layout {
         return this.parts.has(partOrNode) ? partOrNode : this.nodeParts.get(partOrNode).last;
     }
 
+    boundaryTokens(node) {
+        return this.nodeParts.get(node);
+    }
+
     nextToken(part) {
         return this.parts.nextToken(part);
     }
@@ -341,9 +351,71 @@ export class Layout {
         return this.parts.previousToken(part);
     }
 
-    isMultiLine(node) {
+    getIndent(node) {
         const startToken = this.getFirstCodePart(node);
-        const endToken = this.getLastCodePart(node);
+        let token = this.parts.previous(startToken);
+
+        /*
+         * For this loop, we want to see if this node own an indent. That means
+         * the start token of the node is the first indented token on the line.
+         * This is important because it's possible to indent a node that
+         * doesn't have an indent immediately before it (in which case, the
+         * parent node is the one that needs indenting).
+         * 
+         * This loop also skips over comments that are in between the indent
+         * and the first token.
+         */
+        while (token) {
+            if (this.parts.isIndent(token)) {
+                return token;
+            }
+
+            if (!token.type.endsWith("Comment")) {
+                break;
+            }
+
+            token = this.parts.previous(token);
+        }
+
+        return undefined;
+    }
+
+    indent(node) {
+        const indentToken = this.getIndent(node);
+        if (indentToken) {
+            const newIndent = indentToken.value + generateIndentString(this.options);
+            const { startToken, endToken } = this.boundaryTokens(node);
+
+            indentToken.value = newIndent;
+            let token = startToken;
+            while (token !== endToken) {
+                if (this.parts.isIndent(token)) {
+                    token.value = newIndent;
+                }
+                token = this.parts.next(token);
+            }
+        }
+    }
+
+    outdent(node) {
+        const indentToken = this.getIndent(node);
+        if (indentToken) {
+            const newIndent = indentToken.value.slice(generateIndentString(this.options).length);
+            const { startToken, endToken } = this.boundaryTokens(node);
+
+            indentToken.value = newIndent;
+            let token = startToken;
+            while (token !== endToken) {
+                if (this.parts.isIndent(token)) {
+                    token.value = newIndent;
+                }
+                token = this.parts.next(token);
+            }
+        }
+    }
+
+    isMultiLine(node) {
+        const { startToken, endToken } = this.boundaryTokens(node);
         let token = this.parts.next(startToken);
 
         while (token !== endToken) {

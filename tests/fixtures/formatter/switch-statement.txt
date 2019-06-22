@@ -1,0 +1,33 @@
+{}
+---
+switch(foo){
+case "bar" :
+    hello();
+    break
+
+    case "baz":
+    world();
+    break;
+
+    case "bang": {
+        yay()
+}
+   
+    default: whatever();
+};
+---
+switch (foo) {
+    case "bar":
+        hello();
+        break;
+
+    case "baz":
+        world();
+        break;
+
+    case "bang": {
+        yay();
+    }
+
+    default: whatever();
+}
