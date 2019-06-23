@@ -7,7 +7,7 @@
 // Imports
 //-----------------------------------------------------------------------------
 
-import { CodeParts } from "./util/code-parts.js";
+import { TokenList, NEWLINE } from "./util/token-list.js";
 import { Visitor, TaskVisitor } from "./visitors.js";
 import semicolonsTask from "./tasks/semicolons.js";
 import spacesTask from "./tasks/spaces.js";
@@ -18,170 +18,45 @@ import espree from "espree";
 // Data
 //-----------------------------------------------------------------------------
 
+const LINE_ENDINGS = new Map([
+    ["windows", "\r\n"],
+    ["unix", "\n"]
+]);
+
+const QUOTES = new Map([
+    ["double", "\""],
+    ["single", "'"],
+]);
+
+
 const DEFAULT_OPTIONS = {
     indent: 4,
-    eol: "\n",
+    lineEndings: "unix",
     semicolons: true,
     quotes: "double",
     collapseWhitespace: true,
-    maxEmptyLines: 1
+    maxEmptyLines: 1,
+    maxLineLength: Infinity
 };
-
-// TODO: Fix whitespace regex
-const WHITESPACE = /\s/;
-const NEWLINE = /[\r\n\u2028\u2029]/;
-
-const QUOTES = new Map([
-    ["double", { value: "\"", alternates: ["'"] }],
-    ["single", { value: "'", alternates: ["\""] }],
-]);
-
-function isWhitespace(c) {
-    return WHITESPACE.test(c) && !NEWLINE.test(c);
-}
 
 //-----------------------------------------------------------------------------
 // Helpers
 //-----------------------------------------------------------------------------
 
-function convertString(value, quotes) {
-
-    const { value: desiredQuotes, alternates } = QUOTES.get(quotes);
-
-    // Special case: Already the correct quote style
-    if (value.charAt(0) === desiredQuotes) {
-        return value;
-    }
-
-    // strip off the start and end quotes
-    let newValue = value.slice(1, -1)
-
-        // escape any instances of the desired quotes
-        .replace(new RegExp(desiredQuotes, "g"), "\\" + desiredQuotes)
-
-        // unescape any isntances of alternate quotes
-        .replace(new RegExp(`\\\\([${alternates.join("")}])`, "g"), "$1");
-
-    // add back on the desired quotes
-    return desiredQuotes + newValue + desiredQuotes;
+/**
+ * Normalizes the options into a format that `TokenList` can understand.
+ * @param {Object} options The options to normalize.
+ * @returns {Object} The modified options object.
+ */
+function normalizeOptions(options) {
+    options.indent = (typeof options.indent === "number") ? " ".repeat(options.indent) : options.indent,
+    options.lineEndings = LINE_ENDINGS.get(options.lineEndings);
+    options.quotes = QUOTES.get(options.quotes);
+    return options;
 }
 
-function createParts({ast, text}, options) {
-    const parts = new CodeParts();
-    const originalIndents = new Map();
 
-    const { tokens, comments } = ast;
-    let commentIndex = 0, tokenIndex = 0;
-    let index = 0;
-    let lineBreakCount = 0;
-
-    while (index < text.length) {
-        let comment = comments[commentIndex];
-        let token = tokens[tokenIndex];
-
-        // next part is a comment
-        if (comment && comment.range[0] === index) {
-            const newPart = {
-                type: comment.type === "Line" ? "LineComment" : "BlockComment",
-                value: text.slice(comment.range[0], comment.range[1]),
-                range: comment.range
-            };
-            const previousPart = parts.last();
-            parts.add(newPart);
-            index = comment.range[1];
-            commentIndex++;
-
-            if (parts.isIndent(previousPart)) {
-                originalIndents.set(newPart, previousPart.value);
-            }
-
-            lineBreakCount = 0;
-            continue;
-        }
-
-        // next part is a token
-        if (token && token.range[0] === index) {
-            const newToken = {
-                ...token
-            };
-
-            if (newToken.type === "String") {
-                newToken.value = convertString(newToken.value, options.quotes);
-            }
-
-            parts.add(newToken);
-            index = newToken.range[1];
-            tokenIndex++;
-            lineBreakCount = 0;
-            continue;
-        }
-
-        // otherwise it's whitespace, LineBreak, or EOF
-        let c = text.charAt(index);
-        if (c) {
-
-            if (NEWLINE.test(c)) {
-                
-                // if there is whitespace before LineBreak, delete it
-                const previous = parts.last();
-                if (previous && parts.isWhitespace(previous)) {
-                    parts.delete(previous);
-                }
-
-                let startIndex = index;
-
-                if (c === "\r") {
-                    if (text.charAt(index + 1) === "\n") {
-                        index++;
-                    }
-                }
-
-                if (lineBreakCount < options.maxEmptyLines + 1) {
-                    parts.add({
-                        type: "LineBreak",
-                        value: options.eol,
-                        range: [startIndex, index]
-                    });
-                }
-                
-                index++;
-                lineBreakCount++;
-                continue;
-            }
-
-            if (isWhitespace(c)) {
-                let startIndex = index;
-                do {
-                    index++;
-                } while (isWhitespace(text.charAt(index)));
-
-                /*
-                 * If the previous part is a line break, then this is an indent
-                 * and should not be changed. Otherwise, normalize the whitespace
-                 * to a single space.
-                 */
-                const previous = parts.last();
-                const value = parts.isLineBreak(previous)
-                    ? text.slice(startIndex, index)
-                    : " ";
-
-                parts.add({
-                    type: "Whitespace",
-                    value,
-                    range: [startIndex, index]
-                });
-
-                continue;
-            }
-                        
-        } 
-
-    }
-
-    return {parts, originalIndents};
-}
-
-function indentBlockComment(part, parts, options, originalIndents) {
+function indentBlockComment(part, parts, options) {
 
     const previousIndent = parts.findPreviousIndent(part);
     if (previousIndent && NEWLINE.test(part.value)) {
@@ -189,10 +64,10 @@ function indentBlockComment(part, parts, options, originalIndents) {
         // first normalize the new lines and replace with the user preference
         let newValue = part.value
             .replace(/\r\n/g, "\n")
-            .replace(NEWLINE, options.eol);
+            .replace(NEWLINE, options.lineEndings);
 
-        const originalIndent = originalIndents.get(part) || "";
-        part.value = newValue.split(options.eol).map((line, index) => {
+        const originalIndent = parts.getOriginalIndent(part);
+        part.value = newValue.split(options.lineEndings).map((line, index) => {
 
             /*
              * The first line should never be adjusted because the indent
@@ -203,17 +78,13 @@ function indentBlockComment(part, parts, options, originalIndents) {
             return index === 0 || !line.startsWith(originalIndent)
                 ? line
                 : previousIndent.value + line.slice(originalIndent.length);
-        }).join(options.eol);
+        }).join(options.lineEndings);
     }
 
 }
 
-function generateIndentString(options) {
-    return (typeof options.indent === "number") ? " ".repeat(options.indent) : options.indent;
-}
-
-function normalizeIndents(parts, options, originalIndents) {
-    const indent = generateIndentString(options);
+function normalizeIndents(parts, options) {
+    const indent = options.indent;
     let indentLevel = 0;
     let part = parts.first();
 
@@ -257,7 +128,7 @@ function normalizeIndents(parts, options, originalIndents) {
                 }, peekPart);
             }
         } else if (parts.isBlockComment(part)) {
-            indentBlockComment(part, parts, options, originalIndents);
+            indentBlockComment(part, parts, options);
         }
 
         part = parts.next(part);
@@ -270,14 +141,13 @@ function normalizeIndents(parts, options, originalIndents) {
 
 export class Layout {
     constructor(sourceCode, options = {}) {
-        this.options = {
+        this.options = normalizeOptions({
             ...DEFAULT_OPTIONS,
             ...options
-        };
+        });
 
-        const { parts, originalIndents } = createParts(sourceCode, this.options);
-        normalizeIndents(parts, this.options, originalIndents);
-
+        let parts = TokenList.fromAst(sourceCode.ast, sourceCode.text, this.options);
+        normalizeIndents(parts, this.options);
         this.parts = parts;
         let nodeParts = new Map();
         this.nodeParts = nodeParts;
@@ -426,13 +296,12 @@ export class Layout {
                 if (lineBreak) {
                     this.parts.insertAfter(indentToken, lineBreak);
                 } else {
-                    console.dir(firstToken);
                     this.parts.insertBefore(indentToken, firstToken);
                 }
             }
 
             // calculate new indent and update indent token
-            const newIndent = indentToken.value + generateIndentString(this.options);
+            const newIndent = indentToken.value + this.options.indent;
             indentToken.value = newIndent;
 
             // find remaining indents in this node and update as well
@@ -572,13 +441,13 @@ export class Layout {
             if (!this.parts.isLineBreak(part)) {
                 this.parts.insertAfter({
                     type: "LineBreak",
-                    value: this.options.eol
+                    value: this.options.lineEndings
                 }, part);
             }
         } else {
             this.parts.insertAfter({
                 type: "LineBreak",
-                value: this.options.eol
+                value: this.options.lineEndings
             }, part);
         }
     }
