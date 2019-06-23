@@ -1,5 +1,5 @@
 /**
- * @fileoverview Doubly-linked list representing code parts.
+ * @fileoverview Doubly-linked list representing tokens.
  * @author Nicholas C. Zakas
  */
 
@@ -16,13 +16,20 @@ import { OrderedSet } from "@humanwhocodes/ordered-set";
 const rangeStarts = Symbol("rangeStarts");
 const originalIndents = Symbol("originalIndents");
 
-const syntaxTokens = new Set([
+const SYNTAX_TOKENS = new Set([
     "Keyword",
     "String",
     "Numeric",
     "Boolean",
     "Punctuator",
-    "Null"
+    "Null",
+    "Template"
+]);
+
+const NON_WHITESPACE_TOKENS = new Set([
+    ...SYNTAX_TOKENS,
+    "LineComment",
+    "BlockComment"
 ]);
 
 const WHITESPACE = /\s/;
@@ -204,7 +211,7 @@ export class TokenList extends OrderedSet {
         super();
 
         /**
-         * Keeps track of where in the source text that each code part starts.
+         * Keeps track of where in the source text that each token starts.
          * @property rangeStarts
          * @type Map
          * @private
@@ -237,7 +244,7 @@ export class TokenList extends OrderedSet {
     }
 
     /**
-     * Adds a new code part and keeps track of its starting position.
+     * Adds a new token and keeps track of its starting position.
      * @param {Token} part The part to add.
      * @returns {void}
      */
@@ -249,7 +256,7 @@ export class TokenList extends OrderedSet {
     }
 
     /**
-     * Deletes a new code part and its starting position.
+     * Deletes a new token and its starting position.
      * @param {Token} part The part to delete.
      * @returns {void}
      */
@@ -261,11 +268,11 @@ export class TokenList extends OrderedSet {
     }
 
     /**
-     * Inserts a code part after a given code part that already exists in the
+     * Inserts a token after a given token that already exists in the
      * set.
-     * @param {*} part The code part to insert.
-     * @param {*} relatedPart The code part after which to insert the new
-     *      code part.
+     * @param {*} part The token to insert.
+     * @param {*} relatedPart The token after which to insert the new
+     *      token.
      * @returns {void}
      * @throws {Error} If `part` is an invalid value for the set.
      * @throws {Error} If `part` already exists in the set.
@@ -279,11 +286,11 @@ export class TokenList extends OrderedSet {
     }
 
     /**
-     * Inserts a code part before a given code part that already exists in the
+     * Inserts a token before a given token that already exists in the
      * set.
-     * @param {*} part The code part to insert.
-     * @param {*} relatedPart The code part before which to insert the new
-     *      code part.
+     * @param {*} part The token to insert.
+     * @param {*} relatedPart The token before which to insert the new
+     *      token.
      * @returns {void}
      * @throws {Error} If `part` is an invalid value for the set.
      * @throws {Error} If `part` already exists in the set.
@@ -297,83 +304,103 @@ export class TokenList extends OrderedSet {
     }
 
     /**
-     * Gets the code part that begins at the given index in the source text.
+     * Gets the token that begins at the given index in the source text.
      * @param {int} start The range start. 
-     * @returns {Token} The code part is found or `undefined` if not.
+     * @returns {Token} The token is found or `undefined` if not.
      */
     getByRangeStart(start) {
         return this[rangeStarts].get(start);
     }
 
     /**
-     * Determines if a given code part is a punctuator.
-     * @param {Token} part The code part to check.
-     * @returns {boolean} True if the code part is a punctuator, false if not.
+     * Determines if a given token is a punctuator.
+     * @param {Token} part The token to check.
+     * @returns {boolean} True if the token is a punctuator, false if not.
      */
     isPunctuator(part) {
         return part.type === "Punctuator";
     }
 
     /**
-     * Determines if a given code part is whitespace.
-     * @param {Token} part The code part to check.
-     * @returns {boolean} True if the code part is whitespace, false if not.
+     * Determines if a given token is whitespace.
+     * @param {Token} part The token to check.
+     * @returns {boolean} True if the token is whitespace, false if not.
      */
     isWhitespace(part) {
         return part.type === "Whitespace";
     }
 
     /**
-     * Determines if a given code part is a line comment.
-     * @param {Token} part The code part to check.
-     * @returns {boolean} True if the code part is a line comment, false if not.
+     * Determines if a given token is a line comment.
+     * @param {Token} part The token to check.
+     * @returns {boolean} True if the token is a line comment, false if not.
      */
     isLineComment(part) {
         return part.type === "LineComment";
     }
 
     /**
-     * Determines if a given code part is a block comment.
-     * @param {Token} part The code part to check.
-     * @returns {boolean} True if the code part is a block comment, false if not.
+     * Determines if a given token is a block comment.
+     * @param {Token} part The token to check.
+     * @returns {boolean} True if the token is a block comment, false if not.
      */
     isBlockComment(part) {
         return part.type === "BlockComment";
     }
 
     /**
-     * Determines if a given code part is a comment.
-     * @param {Token} part The code part to check.
-     * @returns {boolean} True if the code part is a comment, false if not.
+     * Determines if a given token is a comment.
+     * @param {Token} part The token to check.
+     * @returns {boolean} True if the token is a comment, false if not.
      */
     isComment(part) {
         return this.isLineComment(part) || this.isBlockComment(part);
     }
 
     /**
-     * Determines if a given code part is line break.
-     * @param {Token} part The code part to check.
-     * @returns {boolean} True if the code part is a line break, false if not.
+     * Determines if a given token is line break.
+     * @param {Token} part The token to check.
+     * @returns {boolean} True if the token is a line break, false if not.
      */
     isLineBreak(part) {
         return part.type === "LineBreak";
     }
 
     /**
-     * Determines if a given code part is an indent. Indents are whitespace
+     * Determines if a given token is an indent. Indents are whitespace
      * immediately preceded by a line break.
-     * @param {Token} part The code part to check.
-     * @returns {boolean} True if the code part is an indent, false if not. 
+     * @param {Token} token The token to check.
+     * @returns {boolean} True if the token is an indent, false if not. 
      */
-    isIndent(part) {
-        const previous = this.previous(part);
-        return Boolean(previous && this.isWhitespace(part) && this.isLineBreak(previous));
+    isIndent(token) {
+        const previous = this.previous(token);
+        return Boolean(previous && this.isWhitespace(token) && this.isLineBreak(previous));
     }
 
     /**
-     * Finds the closest previous code part that represents an indent.
+     * Determines if a given token is part of a template literal.
+     * @param {Token} token The token to check.
+     * @returns {boolean} True if the token is a template, false if not.
+     */
+    isTemplate(token) {
+        return token.type === "Template";
+    }
+
+    /**
+     * Finds the first non-whitespace token on the same line as the
+     * given token.
+     * @param {Token} token The token whose line should be searched. 
+     * @returns {Token} The first non-whitespace token on the line.
+     */
+    findFirstTokenOrCommentOnLine(token) {
+        const lineBreak = this.findPreviousLineBreak(token);
+        return lineBreak ? this.nextTokenOrComment(lineBreak) : this.first();
+    }
+
+    /**
+     * Finds the closest previous token that represents an indent.
      * @param {Token} part The part to start searching from. 
-     * @returns {Token} The code part if found or `undefined` if not.
+     * @returns {Token} The token if found or `undefined` if not.
      */
     findPreviousIndent(part) {
         let previous = this.previous(part);
@@ -384,9 +411,9 @@ export class TokenList extends OrderedSet {
     }
 
     /**
-     * Finds the closest previous code part that represents a line break.
+     * Finds the closest previous token that represents a line break.
      * @param {Token} part The part to start searching from. 
-     * @returns {Token} The code part if found or `undefined` if not.
+     * @returns {Token} The token if found or `undefined` if not.
      */
     findPreviousLineBreak(part) {
         let previous = this.previous(part);
@@ -402,15 +429,35 @@ export class TokenList extends OrderedSet {
      * @returns {Token} The next part or `undefined` if no more parts.
      */
     nextToken(startToken) {
-        return this.findNext(token => syntaxTokens.has(token.type), startToken);
+        return this.findNext(token => SYNTAX_TOKENS.has(token.type), startToken);
+    }
+
+    /**
+     * Returns the next non-whitespace token after the given token.
+     * @param {Token} startToken The token to search after.
+     * @returns {Token} The next token or `undefined` if no more tokens.
+     */
+    nextTokenOrComment(startToken) {
+        return this.findNext(token => NON_WHITESPACE_TOKENS.has(token.type), startToken);
     }
 
     /**
      * Returns the previous non-whitespace, non-comment token before the given part.
      * @param {Token} startToken The part to search before.
-     * @returns {Token} The previous part or `undefined` if no more parts.
+     * @returns {Token} The previous part or `undefined` if no more tokens.
      */
     previousToken(startToken) {
-        return this.findPrevious(token => syntaxTokens.has(token.type), startToken);
+        return this.findPrevious(token => SYNTAX_TOKENS.has(token.type), startToken);
     }
+
+    /**
+     * Returns the previous non-whitespace token after the given token.
+     * @param {Token} startToken The token to search after.
+     * @returns {Token} The next token or `undefined` if no more tokens.
+     */
+    previousTokenOrComment(startToken) {
+        return this.findPrevious(token => NON_WHITESPACE_TOKENS.has(token.type), startToken);
+    }
+
+
 }

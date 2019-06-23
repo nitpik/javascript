@@ -1,0 +1,42 @@
+{}
+---
+const a   =   `Hello world`;
+b(`hi ${ name } there`)
+
+c(`what
+is
+${word}?`)
+
+d(`what
+is
+${
+
+
+    word
+}?`  );
+
+e(`what
+is
+${
+        word
+    /*whatever*/}?`  );
+---
+const a = `Hello world`;
+b(`hi ${name} there`);
+
+c(`what
+is
+${word}?`);
+
+d(`what
+is
+${
+
+    word
+}?`);
+
+e(`what
+is
+${
+    word
+/*whatever*/}?`);

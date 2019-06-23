@@ -90,15 +90,21 @@ function normalizeIndents(parts, options) {
 
     while (part) {
 
-        if (/[\[\{\(]/.test(part.value)) {
+        if (/^[\[\{\(]$/.test(part.value)) {
             indentLevel++;
         }
 
-        if (/[\]\}\)]/.test(part.value)) {
+        if (/^[\]\}\)]$/.test(part.value)) {
             indentLevel--;
 
-            // get previous part to fix indent
-            const maybeIndentPart = parts.previous(part);
+            /*
+             * The tricky part about decreasing indent is that the token
+             * triggering the indent decrease will already be indented at the
+             * previous level. To fix this, we need to find the first syntax
+             * on the same line and then adjust the indent before that.
+             */
+            const firstTokenOnLine = parts.findFirstTokenOrCommentOnLine(part);
+            const maybeIndentPart = parts.previous(firstTokenOnLine);
 
             if (parts.isIndent(maybeIndentPart)) {
                 maybeIndentPart.value = indent.repeat(indentLevel);
@@ -148,7 +154,7 @@ export class Layout {
 
         let parts = TokenList.fromAst(sourceCode.ast, sourceCode.text, this.options);
         normalizeIndents(parts, this.options);
-        this.parts = parts;
+        this.tokenList = parts;
         let nodeParts = new Map();
         this.nodeParts = nodeParts;
 
@@ -210,12 +216,12 @@ export class Layout {
         tasks.visit(sourceCode.ast, { layout: this });
     }
 
-    getFirstCodePart(partOrNode) {
-        return this.parts.has(partOrNode) ? partOrNode : this.nodeParts.get(partOrNode).first;
+    getFirstCodePart(tokenOrNode) {
+        return this.tokenList.has(tokenOrNode) ? tokenOrNode : this.nodeParts.get(tokenOrNode).first;
     }
 
-    getLastCodePart(partOrNode) {
-        return this.parts.has(partOrNode) ? partOrNode : this.nodeParts.get(partOrNode).last;
+    getLastCodePart(tokenOrNode) {
+        return this.tokenList.has(tokenOrNode) ? tokenOrNode : this.nodeParts.get(tokenOrNode).last;
     }
 
     boundaryTokens(node) {
@@ -223,31 +229,31 @@ export class Layout {
     }
 
     nextToken(part) {
-        return this.parts.nextToken(part);
+        return this.tokenList.nextToken(part);
     }
 
     previousToken(part) {
-        return this.parts.previousToken(part);
+        return this.tokenList.previousToken(part);
     }
 
     isFirstOnLine(startToken) {
-        let token = this.parts.previous(startToken);
+        let token = this.tokenList.previous(startToken);
         while (token) {
-            if (this.parts.isLineBreak(token)) {
+            if (this.tokenList.isLineBreak(token)) {
                 return true;
             }
 
-            if (!this.parts.isComment(token) && !this.parts.isWhitespace(token)) {
+            if (!this.tokenList.isComment(token) && !this.tokenList.isWhitespace(token)) {
                 return false;
             }
 
-            token = this.parts.previous(token);
+            token = this.tokenList.previous(token);
         }
     }
 
     getIndent(node) {
         const startToken = this.getFirstCodePart(node);
-        let token = this.parts.previous(startToken);
+        let token = this.tokenList.previous(startToken);
 
         /*
          * For this loop, we want to see if this node own an indent. That means
@@ -260,108 +266,151 @@ export class Layout {
          * and the first token.
          */
         while (token) {
-            if (this.parts.isIndent(token)) {
+            if (this.tokenList.isIndent(token)) {
                 return { token };
             }
 
             // first on line but no indent
-            if (this.parts.isLineBreak(token)) {
+            if (this.tokenList.isLineBreak(token)) {
                 return {};
             }
 
-            if (!this.parts.isComment(token)) {
+            if (!this.tokenList.isComment(token)) {
                 break;
             }
 
-            token = this.parts.previous(token);
+            token = this.tokenList.previous(token);
         }
 
         return undefined;
     }
 
-    indent(node) {
+    /**
+     * Indents the given node only if the node is the first syntax on the line.
+     * @param {Node} node 
+     * @param {int} [levels=1] The number of levels to indent. If this value is
+     *      0 then it is considered to be 1. Negative numbers decrease indentation.
+     * returns {boolean} True if the indent was performed, false if not. 
+     */
+    indent(node, levels = 1) {
         const indentPart = this.getIndent(node);
-        if (indentPart) {
-            let indentToken = indentPart.token;
-            const { first: firstToken, last: lastToken } = this.boundaryTokens(node);
+        if (!indentPart) {
+            return false;
 
-            // if there is no indent token, create one
-            if (!indentToken) {
-                indentToken = {
-                    type: "Whitespace",
-                    value: ""
-                };
+        }
+        
+        // normalize levels
+        if (levels === 0) {
+            levels = 1;
+        }
 
-                const lineBreak = this.parts.findPreviousLineBreak(firstToken);
-                if (lineBreak) {
-                    this.parts.insertAfter(indentToken, lineBreak);
-                } else {
-                    this.parts.insertBefore(indentToken, firstToken);
-                }
-            }
+        const effectiveIndent = this.options.indent.repeat(Math.abs(levels));
 
-            // calculate new indent and update indent token
-            const newIndent = indentToken.value + this.options.indent;
-            indentToken.value = newIndent;
+        let indentToken = indentPart.token;
+        const { first: firstToken, last: lastToken } = this.boundaryTokens(node);
 
-            // find remaining indents in this node and update as well
-            let token = firstToken;
-            while (token !== lastToken) {
-                if (this.parts.isIndent(token)) {
-                    token.value = newIndent;
-                }
-                token = this.parts.next(token);
+        // if there is no indent token, create one
+        if (!indentToken) {
+            indentToken = {
+                type: "Whitespace",
+                value: ""
+            };
+
+            const lineBreak = this.tokenList.findPreviousLineBreak(firstToken);
+            if (lineBreak) {
+                this.tokenList.insertAfter(indentToken, lineBreak);
+            } else {
+                this.tokenList.insertBefore(indentToken, firstToken);
             }
         }
+
+        // calculate new indent and update indent token
+        const newIndent = levels > 0
+            ? indentToken.value + effectiveIndent
+            : indentToken.value.slice(effectiveIndent.length);
+        indentToken.value = newIndent;
+
+        // find remaining indents in this node and update as well
+        let token = firstToken;
+        while (token !== lastToken) {
+            if (this.tokenList.isIndent(token)) {
+                token.value = newIndent;
+            }
+            token = this.tokenList.next(token);
+        }
+        
+        return true;
     }
 
+    /**
+     * Determines if a given node's syntax spans multiple lines.
+     * @param {Node} node The node to check.
+     * @returns {boolean} True if the node spans multiple lines, false if not.
+     */
     isMultiLine(node) {
         const { first: firstToken, last: lastToken } = this.boundaryTokens(node);
-        let token = this.parts.next(firstToken);
+        let token = this.tokenList.next(firstToken);
 
         while (token !== lastToken) {
-            if (this.parts.isLineBreak(token)) {
+            if (this.tokenList.isLineBreak(token)) {
                 return true;
             }
 
-            token = this.parts.next(token);
+            token = this.tokenList.next(token);
         }
 
         return false;
+    }
+
+    isSameLine(firstNode, secondNode) {
+        const startToken = this.getLastCodePart(firstNode);
+        const endToken = this.getFirstCodePart(secondNode);
+        let token = this.tokenList.nextToken(startToken);
+
+        while (token !== endToken) {
+            if (this.tokenList.isLineBreak(token)) {
+                return false;
+            }
+            
+            token = this.tokenList.nextToken(startToken);
+        }
+
+        return true;
+
     }
 
     findNext(valueOrFunction, partOrNode) {
         const matcher = typeof valueOrFunction === "string"
             ? part => part.value === valueOrFunction
             : valueOrFunction;
-        const part = partOrNode ? this.getFirstCodePart(partOrNode) : this.parts.first();
-        return this.parts.findNext(matcher, part);
+        const part = partOrNode ? this.getFirstCodePart(partOrNode) : this.tokenList.first();
+        return this.tokenList.findNext(matcher, part);
     }
 
     findPrevious(valueOrFunction, partOrNode) {
         const matcher = typeof valueOrFunction === "string"
             ? part => part.value === valueOrFunction
             : valueOrFunction;
-        const part = partOrNode ? this.getFirstCodePart(partOrNode) : this.parts.last();
-        return this.parts.findPrevious(matcher, part);
+        const part = partOrNode ? this.getFirstCodePart(partOrNode) : this.tokenList.last();
+        return this.tokenList.findPrevious(matcher, part);
     }
 
     spaceBefore(partOrNode) {
 
         let part = this.getFirstCodePart(partOrNode);
 
-        const previous = this.parts.previous(part);
+        const previous = this.tokenList.previous(part);
         if (previous) {
-            if (this.parts.isWhitespace(previous) && !this.parts.isIndent(previous)) {
+            if (this.tokenList.isWhitespace(previous) && !this.tokenList.isIndent(previous)) {
                 previous.value = " ";
-            } else if (!this.parts.isLineBreak(previous)) {
-                this.parts.insertBefore({
+            } else if (!this.tokenList.isLineBreak(previous)) {
+                this.tokenList.insertBefore({
                     type: "Whitespace",
                     value: " "
                 }, part);
             }
         } else {
-            this.parts.insertBefore({
+            this.tokenList.insertBefore({
                 type: "Whitespace",
                 value: " "
             }, part);
@@ -371,12 +420,12 @@ export class Layout {
     spaceAfter(partOrNode) {
         let part = this.getLastCodePart(partOrNode);
 
-        const next = this.parts.next(part);
+        const next = this.tokenList.next(part);
         if (next) {
-            if (this.parts.isWhitespace(next)) {
+            if (this.tokenList.isWhitespace(next)) {
                 next.value = " ";
-            } else if (!this.parts.isLineBreak(next)) {
-                this.parts.insertAfter({
+            } else if (!this.tokenList.isLineBreak(next)) {
+                this.tokenList.insertAfter({
                     type: "Whitespace",
                     value: " "
                 }, part);
@@ -392,18 +441,18 @@ export class Layout {
     noSpaceAfter(partOrNode) {
         let part = this.getLastCodePart(partOrNode);
 
-        const next = this.parts.next(part);
-        if (next && this.parts.isWhitespace(next)) {
-            this.parts.delete(next);
+        const next = this.tokenList.next(part);
+        if (next && this.tokenList.isWhitespace(next)) {
+            this.tokenList.delete(next);
         }
     }
 
     noSpaceBefore(partOrNode) {
         let part = this.getFirstCodePart(partOrNode);
 
-        const previous = this.parts.previous(part);
-        if (previous && this.parts.isWhitespace(previous)) {
-            this.parts.delete(previous);
+        const previous = this.tokenList.previous(part);
+        if (previous && this.tokenList.isWhitespace(previous)) {
+            this.tokenList.delete(previous);
         }
     }
 
@@ -416,17 +465,17 @@ export class Layout {
         let part = this.getLastCodePart(partOrNode);
         
         // check to see what the next code part is
-        const next = this.parts.next(part);
+        const next = this.tokenList.next(part);
         if (next) {
             if (next.type !== "Punctuator" || next.value !== ";") {
-                this.parts.insertAfter({
+                this.tokenList.insertAfter({
                     type: "Punctuator",
                     value: ";",
                 }, part);
             }
         } else {
             // we are at the end of the file, so just add the semicolon
-            this.parts.add({
+            this.tokenList.add({
                 type: "Punctuator",
                 value: ";"
             });
@@ -436,16 +485,16 @@ export class Layout {
     lineBreakAfter(partOrNode) {
         let part = this.getLastCodePart(partOrNode);
 
-        const next = this.parts.next(part);
+        const next = this.tokenList.next(part);
         if (next) {
-            if (!this.parts.isLineBreak(part)) {
-                this.parts.insertAfter({
+            if (!this.tokenList.isLineBreak(part)) {
+                this.tokenList.insertAfter({
                     type: "LineBreak",
                     value: this.options.lineEndings
                 }, part);
             }
         } else {
-            this.parts.insertAfter({
+            this.tokenList.insertAfter({
                 type: "LineBreak",
                 value: this.options.lineEndings
             }, part);
@@ -453,6 +502,6 @@ export class Layout {
     }
 
     toString() {
-        return [...this.parts].map(part => part.value).join("");
+        return [...this.tokenList].map(part => part.value).join("");
     }
 }

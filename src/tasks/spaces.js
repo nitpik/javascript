@@ -340,6 +340,19 @@ export default function(context) {
             layout.spaceAfter(colon);
         },
 
+        TemplateLiteral(node) {
+            const [firstQuasi, ...quasis] = node.quasis;
+            if (quasis.length) {
+                layout.noSpaceAfter(firstQuasi);
+                let previousQuasi = firstQuasi;
+
+                quasis.forEach(quasi => {
+                    layout.noSpaceBefore(quasi);
+                    layout.noSpaceAfter(quasi);
+                });
+            }
+        },
+
         ThrowStatement(node) {
             const firstToken = layout.getFirstCodePart(node);
             layout.spaceAfter(firstToken);

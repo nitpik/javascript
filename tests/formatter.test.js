@@ -37,17 +37,14 @@ describe("Formatter", () => {
     xdescribe("One-offs", () => {
         it("should not add a semicolon after last export", () => {
             const source = `
-module.exports = {
-    
-    
-
-}
+a(\`hello \${
+world
+}\`);
 `.trim();
             const expected = `
-module.exports = {
-
-
-};
+a(\`hello \${
+    world
+}\`);
 `.trim();
             const formatter = new Formatter({
                 options: {
