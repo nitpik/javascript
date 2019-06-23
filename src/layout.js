@@ -12,6 +12,7 @@ import { Visitor, TaskVisitor } from "./visitors.js";
 import semicolonsTask from "./tasks/semicolons.js";
 import spacesTask from "./tasks/spaces.js";
 import indentsTask from "./tasks/indents.js";
+import multilineTask from "./tasks/multiline.js";
 import espree from "espree";
 
 //-----------------------------------------------------------------------------
@@ -35,6 +36,7 @@ const DEFAULT_OPTIONS = {
     semicolons: true,
     quotes: "double",
     collapseWhitespace: true,
+    trailingCommas: true,
     maxEmptyLines: 1,
     maxLineLength: Infinity
 };
@@ -52,7 +54,7 @@ function normalizeOptions(options) {
     options.indent = (typeof options.indent === "number") ? " ".repeat(options.indent) : options.indent,
     options.lineEndings = LINE_ENDINGS.get(options.lineEndings);
     options.quotes = QUOTES.get(options.quotes);
-    return options;
+    return Object.freeze(options);
 }
 
 
@@ -90,11 +92,11 @@ function normalizeIndents(parts, options) {
 
     while (part) {
 
-        if (/^[\[\{\(]$/.test(part.value)) {
+        if (/^[[{(]$/.test(part.value)) {
             indentLevel++;
         }
 
-        if (/^[\]\}\)]$/.test(part.value)) {
+        if (/^[\]})]$/.test(part.value)) {
             indentLevel--;
 
             /*
@@ -213,6 +215,7 @@ export class Layout {
         tasks.addTask(semicolonsTask);
         tasks.addTask(spacesTask);
         tasks.addTask(indentsTask);
+        tasks.addTask(multilineTask);
         tasks.visit(sourceCode.ast, { layout: this });
     }
 
@@ -362,21 +365,20 @@ export class Layout {
         return false;
     }
 
-    isSameLine(firstNode, secondNode) {
-        const startToken = this.getLastCodePart(firstNode);
-        const endToken = this.getFirstCodePart(secondNode);
-        let token = this.tokenList.nextToken(startToken);
-
-        while (token !== endToken) {
+    isSameLine(firstPartOrNode, secondPartOrNode) {
+        const startToken = this.getLastCodePart(firstPartOrNode);
+        const endToken = this.getFirstCodePart(secondPartOrNode);
+        let token = this.tokenList.next(startToken);
+        
+        while (token && token !== endToken) {
             if (this.tokenList.isLineBreak(token)) {
                 return false;
             }
             
-            token = this.tokenList.nextToken(startToken);
+            token = this.tokenList.next(token);
         }
 
-        return true;
-
+        return Boolean(token);
     }
 
     findNext(valueOrFunction, partOrNode) {
@@ -480,6 +482,31 @@ export class Layout {
                 value: ";"
             });
         }
+    }
+    
+    commaAfter(partOrNode) {
+        let part = this.getLastCodePart(partOrNode);
+       
+        // check to see what the next code part is
+        const next = this.nextToken(part);
+        if (next) {
+
+            // don't insert after another comma
+            if (next.value !== ",") {
+                this.tokenList.insertAfter({
+                    type: "Punctuator",
+                    value: ",",
+                }, part);
+
+                return true;
+            }
+        }
+
+        /*
+         * If we make it to here, then we're at the end of the file and a comma
+         * should not be inserted because it's likely not valid syntax.
+         */
+        return false;
     }
 
     lineBreakAfter(partOrNode) {

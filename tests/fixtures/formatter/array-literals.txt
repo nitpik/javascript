@@ -1,0 +1,37 @@
+{
+    "trailingCommas": true
+}
+---
+const colors = ["red" , "green" , "blue"] ;
+
+const numbers = [
+    1,
+2
+];
+
+const moreNumbers=[
+    3,
+];
+
+const evenMoreNumbers =   [
+    3,
+4,
+    5
+];
+---
+const colors = ["red", "green", "blue"];
+
+const numbers = [
+    1,
+    2,
+];
+
+const moreNumbers = [
+    3,
+];
+
+const evenMoreNumbers = [
+    3,
+    4,
+    5,
+];
