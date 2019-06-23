@@ -22,7 +22,9 @@ const DEFAULT_OPTIONS = {
     indent: 4,
     eol: "\n",
     semicolons: true,
-    quotes: "double"
+    quotes: "double",
+    collapseWhitespace: true,
+    maxEmptyLines: 1
 };
 
 // TODO: Fix whitespace regex
@@ -30,9 +32,8 @@ const WHITESPACE = /\s/;
 const NEWLINE = /[\r\n\u2028\u2029]/;
 
 const QUOTES = new Map([
-    ["double", { value: "\"", alternates: ["'", "`"] }],
-    ["single", { value: "'", alternates: ["\"", "`"] }],
-    ["backtick", { value: "`", alternates: ["\"", "'"] }]
+    ["double", { value: "\"", alternates: ["'"] }],
+    ["single", { value: "'", alternates: ["\""] }],
 ]);
 
 function isWhitespace(c) {
@@ -72,6 +73,7 @@ function createParts({ast, text}, options) {
     const { tokens, comments } = ast;
     let commentIndex = 0, tokenIndex = 0;
     let index = 0;
+    let lineBreakCount = 0;
 
     while (index < text.length) {
         let comment = comments[commentIndex];
@@ -92,6 +94,8 @@ function createParts({ast, text}, options) {
             if (parts.isIndent(previousPart)) {
                 originalIndents.set(newPart, previousPart.value);
             }
+
+            lineBreakCount = 0;
             continue;
         }
 
@@ -108,6 +112,7 @@ function createParts({ast, text}, options) {
             parts.add(newToken);
             index = newToken.range[1];
             tokenIndex++;
+            lineBreakCount = 0;
             continue;
         }
 
@@ -116,6 +121,13 @@ function createParts({ast, text}, options) {
         if (c) {
 
             if (NEWLINE.test(c)) {
+                
+                // if there is whitespace before LineBreak, delete it
+                const previous = parts.last();
+                if (previous && parts.isWhitespace(previous)) {
+                    parts.delete(previous);
+                }
+
                 let startIndex = index;
 
                 if (c === "\r") {
@@ -123,20 +135,17 @@ function createParts({ast, text}, options) {
                         index++;
                     }
                 }
-                const previous = parts.last();
 
-                parts.add({
-                    type: "LineBreak",
-                    value: options.eol,
-                    range: [startIndex, ++index]
-                });
-
-
-                // if there is whitespace before LineBreak, delete it
-                if (previous && parts.isWhitespace(previous)) {
-                    parts.delete(previous);
+                if (lineBreakCount < options.maxEmptyLines + 1) {
+                    parts.add({
+                        type: "LineBreak",
+                        value: options.eol,
+                        range: [startIndex, index]
+                    });
                 }
                 
+                index++;
+                lineBreakCount++;
                 continue;
             }
 

@@ -20,7 +20,8 @@ const DEFAULT_OPTIONS = {
     parserOptions: {
         ecmaVersion: 2019,
         ecmaFeatures: {
-            jsx: true
+            jsx: true,
+            globalReturn: true
         }
     },
     plugins: []
