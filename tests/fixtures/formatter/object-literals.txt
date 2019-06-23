@@ -1,4 +1,6 @@
-{}
+{
+    "maxEmptyLines": 2
+}
 ---
 module.exports = {         
     colors :["red" ,"green" ,"blue"],
@@ -11,6 +13,9 @@ module.exports = {
         return "yo"
     }
 }
+
+
+
 
     let name = "Nicholas";
 const x = {
@@ -35,6 +40,7 @@ module.exports = {
         return "yo";
     }
 };
+
 
 let name = "Nicholas";
 const x = {

@@ -46,16 +46,6 @@ class LayoutPluginContext extends PluginContext {
     }
 }
 
-function runLayoutTasks(tasks, {ast, text, layoutOptions, parser }) {
-
-    const layout = new Layout({ ast, text }, layoutOptions);
-
-    const visitor = new TaskVisitor(parser.VisitorKeys);
-    tasks.forEach(task => visitor.addTask(task));
-    visitor.visit(ast, new LayoutPluginContext({ ast, text, layout }));
-
-    return layout.toString();
-}
 
 //-----------------------------------------------------------------------------
 // Exports
@@ -66,7 +56,7 @@ export class Formatter {
         this.config = config;
     }
 
-    format(text, layoutOptions = {}) {
+    format(text) {
         const parser = espree;
         let ast = parser.parse(text, {
             comment: true,
@@ -80,7 +70,15 @@ export class Formatter {
                 globalReturn: true
             }
         });
-        return runLayoutTasks(this.config.layout.tasks || [], { ast, text, layoutOptions, parser });
+
+
+        const layout = new Layout({ ast, text }, this.config.options);
+
+        const visitor = new TaskVisitor(parser.VisitorKeys);
+        // this.config.tasks.forEach(task => visitor.addTask(task));
+        visitor.visit(ast, new LayoutPluginContext({ ast, text, layout }));
+
+        return layout.toString();
 
     }
 }

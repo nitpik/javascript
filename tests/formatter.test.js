@@ -37,22 +37,25 @@ describe("Formatter", () => {
     xdescribe("One-offs", () => {
         it("should not add a semicolon after last export", () => {
             const source = `
-module.exports = {         
-    colors :["red" ,"green" ,"blue"],
-        name :'esfmt',
-    doSomething(){
-    // some comment
-        return   'I said, "hi!"'
-    }
+module.exports = {
+    
+    
+
 }
 `.trim();
+            const expected = `
+module.exports = {
+
+
+};
+`.trim();
             const formatter = new Formatter({
-                layout: {
-                },
-                tasks: []
+                options: {
+                    maxEmptyLines: 2
+                }
             });
             const result = formatter.format(source);
-            expect(result).to.deep.equal("module.exports = {");
+            expect(result).to.deep.equal(expected);
 
         });
     });
@@ -67,10 +70,7 @@ module.exports = {
             
             it(`Test in ${ fileName } should format correctly`, () => {
                 const formatter = new Formatter({
-                    layout: {
-                        options: JSON.parse(options)
-                    },
-                    tasks: []
+                    options: JSON.parse(options)
                 });
                 const result = formatter.format(source);
                 expect(result).to.deep.equal(expected);
