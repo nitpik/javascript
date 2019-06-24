@@ -8,6 +8,7 @@
 //-----------------------------------------------------------------------------
 
 import { TokenList, NEWLINE } from "./util/token-list.js";
+import { Wrapper } from "./util/wrapper.js";
 import { Visitor, TaskVisitor } from "./visitors.js";
 import semicolonsTask from "./tasks/semicolons.js";
 import spacesTask from "./tasks/spaces.js";
@@ -159,6 +160,7 @@ export class Layout {
         this.tokenList = parts;
         let nodeParts = new Map();
         this.nodeParts = nodeParts;
+        this.wrapper = new Wrapper(this, this.tokenList);
 
         const visitor = new Visitor(espree.VisitorKeys);
         visitor.visit(sourceCode.ast, (node, parent) => {
@@ -526,6 +528,14 @@ export class Layout {
                 value: this.options.lineEndings
             }, part);
         }
+    }
+
+    wrap(node) {
+
+    }
+
+    noWrap(node) {
+        this.wrapper.noWrap(node, this, this.tokenList);
     }
 
     toString() {

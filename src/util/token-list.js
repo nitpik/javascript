@@ -323,11 +323,30 @@ export class TokenList extends OrderedSet {
 
     /**
      * Determines if a given token is whitespace.
-     * @param {Token} part The token to check.
+     * @param {Token} token The token to check.
      * @returns {boolean} True if the token is whitespace, false if not.
      */
-    isWhitespace(part) {
-        return part.type === "Whitespace";
+    isWhitespace(token) {
+        return token.type === "Whitespace";
+    }
+
+    /**
+     * Determines if a given token is line break.
+     * @param {Token} token The token to check.
+     * @returns {boolean} True if the token is a line break, false if not.
+     */
+    isLineBreak(token) {
+        return token.type === "LineBreak";
+    }
+
+    /**
+     * Determines if a given token is whitespace or a line break.
+     * @param {Token} token The token to check.
+     * @returns {boolean} True if the token is whitespace or a line break,
+     *      false if not.
+     */
+    isWhitespaceOrLineBreak(token) {
+        return this.isWhitespace(token) || this.isLineBreak(token);
     }
 
     /**
@@ -355,15 +374,6 @@ export class TokenList extends OrderedSet {
      */
     isComment(part) {
         return this.isLineComment(part) || this.isBlockComment(part);
-    }
-
-    /**
-     * Determines if a given token is line break.
-     * @param {Token} part The token to check.
-     * @returns {boolean} True if the token is a line break, false if not.
-     */
-    isLineBreak(part) {
-        return part.type === "LineBreak";
     }
 
     /**

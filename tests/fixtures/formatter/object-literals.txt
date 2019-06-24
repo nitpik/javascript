@@ -29,6 +29,15 @@ const x = {
         await foo()
     }
 }
+
+const z = {  };
+const zz = {
+
+  };
+
+const zzz = {
+// hi
+}
 ---
 module.exports = {
     colors: ["red", "green", "blue"],
@@ -53,4 +62,11 @@ const x = {
     async doSomethingElse() {
         await foo();
     },
+};
+
+const z = {};
+const zz = {};
+
+const zzz = {
+    // hi
 };

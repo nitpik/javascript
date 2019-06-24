@@ -62,9 +62,8 @@ export default function(context) {
             const { firstToken, lastToken } = layout.boundaryTokens(node);
             layout.noSpaceAfter(firstToken);
             
-            if (layout.isMultiLine(node)) {
-                // TODO
-            } else {
+            // no spacing work for multiline
+            if (!layout.isMultiLine(node)) {
               
                 layout.noSpaceBefore(lastToken);
 
@@ -293,6 +292,29 @@ export default function(context) {
 
         MethodDefinition(node) {
             this.FunctionExpression(node.value, node);
+        },
+
+        ObjectExpression(node) {
+
+            const { firstToken, lastToken } = layout.boundaryTokens(node);
+            layout.noSpaceAfter(firstToken);
+
+            // no spacing work for multiline
+            if (!layout.isMultiLine(node)) {
+
+                layout.noSpaceBefore(lastToken);
+
+                if (node.properties.length) {
+
+                    node.properties.forEach((property, index) => {
+
+                        if (index > 0) {
+                            layout.spaceBefore(property);
+                        }
+                        layout.noSpaceAfter(property);
+                    });
+                }
+            }
         },
 
         Property(node) {

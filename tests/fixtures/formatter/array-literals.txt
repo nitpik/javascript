@@ -4,6 +4,16 @@
 ---
 const colors = ["red" , "green" , "blue"] ;
 
+const empty = [
+
+];
+
+const emptyWithComment = [
+        // hi
+]
+
+const emptySameLine = [  ];
+
 const numbers = [
     1,
 2
@@ -20,6 +30,14 @@ const evenMoreNumbers =   [
 ];
 ---
 const colors = ["red", "green", "blue"];
+
+const empty = [];
+
+const emptyWithComment = [
+    // hi
+];
+
+const emptySameLine = [];
 
 const numbers = [
     1,
