@@ -59,23 +59,24 @@ export default function(context) {
 
         ArrayExpression(node) {
             
-            const firstToken = layout.getFirstCodePart(node);
+            const { first: firstToken, last: lastToken } = layout.boundaryTokens(node);
             
             if (layout.isMultiLine(node)) {
                 // TODO
             } else {
               
-                
+                layout.noSpaceAfter(firstToken);
+                layout.noSpaceBefore(lastToken);
+
                 if (node.elements.length) {
 
-                    node.elements.forEach(element => {
-                        layout.spaceBefore(element);
+                    node.elements.forEach((element, index) => {
+
+                        if (index > 0) {
+                            layout.spaceBefore(element);
+                        }
                         layout.noSpaceAfter(element);
                     });
-
-                    layout.spaceAfter(node.elements[node.elements.length - 1]);
-                } else {
-                    layout.noSpaceAfter(firstToken);
                 }
             }
         },

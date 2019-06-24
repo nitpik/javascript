@@ -4,7 +4,7 @@
 }
 ---
 module.exports = {         
-    colors :["red" ,"green" ,"blue"],
+    colors :[ "red" ,"green" ,"blue" ],
         name :'esfmt',
     doSomething(){
     // some comment
@@ -31,7 +31,7 @@ const x = {
 }
 ---
 module.exports = {
-    colors: [ "red", "green", "blue" ],
+    colors: ["red", "green", "blue"],
     name: "esfmt",
     doSomething() {
         // some comment
