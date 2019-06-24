@@ -59,13 +59,13 @@ export default function(context) {
 
         ArrayExpression(node) {
             
-            const { first: firstToken, last: lastToken } = layout.boundaryTokens(node);
+            const { firstToken, lastToken } = layout.boundaryTokens(node);
+            layout.noSpaceAfter(firstToken);
             
             if (layout.isMultiLine(node)) {
                 // TODO
             } else {
               
-                layout.noSpaceAfter(firstToken);
                 layout.noSpaceBefore(lastToken);
 
                 if (node.elements.length) {

@@ -163,7 +163,7 @@ export class Layout {
         const visitor = new Visitor(espree.VisitorKeys);
         visitor.visit(sourceCode.ast, (node, parent) => {
 
-            const first = parts.getByRangeStart(node.range[0]);
+            const firstToken = parts.getByRangeStart(node.range[0]);
 
             /*
              * Program nodes and the body property of Program nodes won't
@@ -171,7 +171,7 @@ export class Layout {
              * the last token. We can just substitue the last code part in
              * that case.
              */
-            let last = parts.getByRangeStart(node.range[1]) 
+            let lastToken = parts.getByRangeStart(node.range[1]) 
                 ? parts.previous(parts.getByRangeStart(node.range[1]))
                 : parts.last();
 
@@ -182,8 +182,8 @@ export class Layout {
              * of the node. By doing so, developers can always assume a 
              * semicolon appears as the next part after the node if present.
              */
-            if (last.value === ";") {
-                last = parts.previous(last);
+            if (lastToken.value === ";") {
+                lastToken = parts.previous(lastToken);
 
                 /*
                  * If a node's last token was previously a semicolon, it's
@@ -191,8 +191,8 @@ export class Layout {
                  * between a token and a semicolon insignificant (and often a
                  * typo), so adjust the last token one more time.
                  */
-                if (parts.isWhitespace(last)) {
-                    last = parts.previous(last);
+                if (parts.isWhitespace(lastToken)) {
+                    lastToken = parts.previous(lastToken);
                 }
             }
 
@@ -200,14 +200,14 @@ export class Layout {
             if (node.type === "EmptyStatement") {
                 if (Array.isArray(parent.body)) {
                     parent.body = parent.body.filter(child => child !== node);
-                    parts.delete(first);
+                    parts.delete(firstToken);
                     return;
                 }
             }
 
             nodeParts.set(node, {
-                first,
-                last 
+                firstToken,
+                lastToken 
             });
         });
 
@@ -220,11 +220,11 @@ export class Layout {
     }
 
     getFirstCodePart(tokenOrNode) {
-        return this.tokenList.has(tokenOrNode) ? tokenOrNode : this.nodeParts.get(tokenOrNode).first;
+        return this.tokenList.has(tokenOrNode) ? tokenOrNode : this.nodeParts.get(tokenOrNode).firstToken;
     }
 
     getLastCodePart(tokenOrNode) {
-        return this.tokenList.has(tokenOrNode) ? tokenOrNode : this.nodeParts.get(tokenOrNode).last;
+        return this.tokenList.has(tokenOrNode) ? tokenOrNode : this.nodeParts.get(tokenOrNode).lastToken;
     }
 
     boundaryTokens(node) {
@@ -310,7 +310,7 @@ export class Layout {
         const effectiveIndent = this.options.indent.repeat(Math.abs(levels));
 
         let indentToken = indentPart.token;
-        const { first: firstToken, last: lastToken } = this.boundaryTokens(node);
+        const { firstToken, lastToken } = this.boundaryTokens(node);
 
         // if there is no indent token, create one
         if (!indentToken) {
@@ -351,7 +351,7 @@ export class Layout {
      * @returns {boolean} True if the node spans multiple lines, false if not.
      */
     isMultiLine(node) {
-        const { first: firstToken, last: lastToken } = this.boundaryTokens(node);
+        const { firstToken, lastToken } = this.boundaryTokens(node);
         let token = this.tokenList.next(firstToken);
 
         while (token !== lastToken) {
