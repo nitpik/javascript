@@ -43,6 +43,15 @@ const QUOTE_ALTERNATES = new Map([
 const INDENT_INCREASE_CHARS = new Set(["{", "(", "["]);
 const INDENT_DECREASE_CHARS = new Set(["}", ")", "]"]);
 
+const DEFAULT_OPTIONS = {
+    indent: 4,
+    lineEndings: "\n",
+    quotes: "\"",
+    trimTrailingWhitespace: true,
+    collapseWhitespace: true,
+    maxEmptyLines: 1
+};
+
 //-----------------------------------------------------------------------------
 // Helpers
 //-----------------------------------------------------------------------------
@@ -140,9 +149,11 @@ function buildTokenList(list, ast, text, options) {
             if (NEWLINE.test(c)) {
 
                 // if there is whitespace before LineBreak, delete it
-                const previous = list.last();
-                if (previous && list.isWhitespace(previous)) {
-                    list.delete(previous);
+                if (options.trimTrailingWhitespace) {
+                    const previous = list.last();
+                    if (previous && list.isWhitespace(previous)) {
+                        list.delete(previous);
+                    }
                 }
 
                 let startIndex = index;
@@ -172,15 +183,19 @@ function buildTokenList(list, ast, text, options) {
                     index++;
                 } while (isWhitespace(text.charAt(index)));
 
+                let value = text.slice(startIndex, index);
+
                 /*
                  * If the previous part is a line break, then this is an indent
                  * and should not be changed. Otherwise, normalize the whitespace
                  * to a single space.
                  */
-                const previous = list.last();
-                const value = list.isLineBreak(previous)
-                    ? text.slice(startIndex, index)
-                    : " ";
+                if (options.collapseWhitespace) {
+                    const previous = list.last();
+                    if (!list.isLineBreak(previous)) {
+                        value = " ";
+                    }
+                }
 
                 list.add({
                     type: "Whitespace",
@@ -230,9 +245,12 @@ export class TokenList extends OrderedSet {
         this[originalIndents] = new Map();
     }
 
-    static fromAst(ast, text, options) {
+    static fromAST(ast, text, options) {
         const list = new TokenList();
-        buildTokenList(list, ast, text, options);
+        buildTokenList(list, ast, text, {
+            ...DEFAULT_OPTIONS,
+            ...options
+        });
         return list;
     }
 

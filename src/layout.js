@@ -155,7 +155,7 @@ export class Layout {
             ...options
         });
 
-        let parts = TokenList.fromAst(sourceCode.ast, sourceCode.text, this.options);
+        let parts = TokenList.fromAST(sourceCode.ast, sourceCode.text, this.options);
         normalizeIndents(parts, this.options);
         this.tokenList = parts;
         let nodeParts = new Map();
