@@ -34,10 +34,10 @@ function normalizePunctuatorSpacing(layout) {
 }
 
 function spaceKeywordAndBrace(node, bodyKey, layout) {
-    const firstToken = layout.getFirstCodePart(node);
+    const firstToken = layout.firstToken(node);
     layout.spaceAfter(firstToken);
 
-    const braceToken = layout.getFirstCodePart(node[bodyKey]);
+    const braceToken = layout.firstToken(node[bodyKey]);
     if (braceToken.value === "{") {
         layout.spaceBefore(braceToken);
     }
@@ -83,7 +83,7 @@ export default function(context) {
         ArrowFunctionExpression(node) {
     
             let openParenToken, closeParenToken;
-            const firstToken = layout.getFirstCodePart(node);
+            const firstToken = layout.firstToken(node);
     
             if (node.async) {
                 layout.spaceAfter(firstToken);
@@ -135,12 +135,12 @@ export default function(context) {
 
 
         AwaitExpression(node) {
-            const firstToken = layout.getFirstCodePart(node);
+            const firstToken = layout.firstToken(node);
             layout.spaceAfter(firstToken);
         },
 
         BinaryExpression(node) {
-            const firstToken = layout.getFirstCodePart(node);
+            const firstToken = layout.firstToken(node);
             const operatorToken = layout.findNext(node.operator, firstToken);
             layout.spaces(operatorToken);
         },
@@ -161,7 +161,7 @@ export default function(context) {
         },
 
         ExportNamedDeclaration(node) {
-            const firstToken = layout.getFirstCodePart(node);
+            const firstToken = layout.firstToken(node);
             layout.spaceAfter(firstToken);
 
             if (node.specifiers.length) {
@@ -194,7 +194,7 @@ export default function(context) {
             const isConcise =
                 (parent.type === "Property" && parent.method) ||
                 (parent.type === "MethodDefinition");
-            let token = layout.getFirstCodePart(node);
+            let token = layout.firstToken(node);
             let id, openParen;
 
             if (!isConcise) {
@@ -227,7 +227,7 @@ export default function(context) {
                     throw new Error(`Unexpected token "${token.value}".`);
                 }
             } else {
-                let idStart = layout.getFirstCodePart(parent.key);
+                let idStart = layout.firstToken(parent.key);
                 id = idStart;
 
                 if (parent.computed) {
@@ -255,7 +255,7 @@ export default function(context) {
             
             layout.noSpaces(openParen);
 
-            const openBrace = layout.getFirstCodePart(node.body);
+            const openBrace = layout.firstToken(node.body);
             layout.spaceBefore(openBrace);
             
             const closeParen = layout.findPrevious(")", openBrace);
@@ -272,7 +272,7 @@ export default function(context) {
         },
 
         ImportDeclaration(node) {
-            const firstToken = layout.getFirstCodePart(node);
+            const firstToken = layout.firstToken(node);
             layout.spaceAfter(firstToken);
 
             const fromToken = layout.findPrevious("from", node.source);
@@ -326,7 +326,7 @@ export default function(context) {
                 
                 // also be sure to check spacing of computed properties
                 if (node.computed) {
-                    const firstToken = layout.getFirstCodePart(node.key);
+                    const firstToken = layout.firstToken(node.key);
                     const openBracket = layout.findPrevious("[", firstToken);
                     const closeBracket = layout.findNext("]", firstToken);
                     
@@ -352,7 +352,7 @@ export default function(context) {
         },
 
         SwitchStatement(node) {
-            const firstToken = layout.getFirstCodePart(node);
+            const firstToken = layout.firstToken(node);
             layout.spaceAfter(firstToken);
 
             const braceToken = layout.findNext("{", node.discriminant);
@@ -379,21 +379,21 @@ export default function(context) {
         },
 
         ThrowStatement(node) {
-            const firstToken = layout.getFirstCodePart(node);
+            const firstToken = layout.firstToken(node);
             layout.spaceAfter(firstToken);
         },
 
         TryStatement(node) {
             spaceKeywordAndBrace(node, "block", layout);
 
-            const catchToken = layout.getFirstCodePart(node.handler);
+            const catchToken = layout.firstToken(node.handler);
             layout.spaces(catchToken);
 
-            const catchBraceToken = layout.getFirstCodePart(node.handler.body);
+            const catchBraceToken = layout.firstToken(node.handler.body);
             layout.spaceBefore(catchBraceToken);
 
             if (node.finalizer) {
-                const finallyBraceToken = layout.getFirstCodePart(node.finalizer);
+                const finallyBraceToken = layout.firstToken(node.finalizer);
                 const finallyToken = layout.findPrevious("finally", finallyBraceToken);
                 layout.spaces(finallyToken);
             }
@@ -401,10 +401,10 @@ export default function(context) {
 
         UpdateExpression(node) {
             if (node.prefix) {
-                const operatorToken = layout.getFirstCodePart(node);
+                const operatorToken = layout.firstToken(node);
                 layout.noSpaceAfter(operatorToken);
             } else {
-                const operatorToken = layout.getLastCodePart(node);
+                const operatorToken = layout.lastToken(node);
                 layout.noSpaceBefore(operatorToken);
             }
         },
@@ -414,7 +414,7 @@ export default function(context) {
         },
 
         VariableDeclaration(node) {
-            const firstToken = layout.getFirstCodePart(node);
+            const firstToken = layout.firstToken(node);
             layout.spaceAfter(firstToken);
         },
         
@@ -423,7 +423,7 @@ export default function(context) {
         },
 
         YieldExpression(node) {
-            const firstToken = layout.getFirstCodePart(node);
+            const firstToken = layout.firstToken(node);
             layout.spaceAfter(firstToken);
         },
         

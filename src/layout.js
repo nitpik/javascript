@@ -33,6 +33,7 @@ const QUOTES = new Map([
 
 const DEFAULT_OPTIONS = {
     indent: 4,
+    tabWidth: 4,
     lineEndings: "unix",
     semicolons: true,
     quotes: "double",
@@ -221,11 +222,11 @@ export class Layout {
         tasks.visit(sourceCode.ast, { layout: this });
     }
 
-    getFirstCodePart(tokenOrNode) {
+    firstToken(tokenOrNode) {
         return this.tokenList.has(tokenOrNode) ? tokenOrNode : this.nodeParts.get(tokenOrNode).firstToken;
     }
 
-    getLastCodePart(tokenOrNode) {
+    lastToken(tokenOrNode) {
         return this.tokenList.has(tokenOrNode) ? tokenOrNode : this.nodeParts.get(tokenOrNode).lastToken;
     }
 
@@ -256,8 +257,37 @@ export class Layout {
         }
     }
 
+    /**
+     * Gets number of characters in the line represented by the token or node.
+     * @param {Token|Node} tokenOrNode The token or node whose line should be checked.
+     * @returns {int} The number of characters in the line.
+     */
+    getLineLength(tokenOrNode) {
+        const token = this.firstToken(tokenOrNode);
+        let current = this.tokenList.findFirstTokenOrCommentOnLine(token);
+        const previous = this.tokenList.previous(current);
+        let characterCount = 0;
+
+        // first count the indent, if any
+        if (this.tokenList.isIndent(previous)) {
+            if (previous.value.includes("\t")) {
+                characterCount += previous.value.length * this.options.tabWidth;
+            } else {
+                characterCount += previous.value;
+            }
+        }
+
+        // then count the other tokens
+        while (!this.tokenList.isLineBreak(current)) {
+            characterCount += current.value.length;
+            current = this.tokenList.next(current);
+        }
+
+        return characterCount;
+    }
+
     getIndent(node) {
-        const startToken = this.getFirstCodePart(node);
+        const startToken = this.firstToken(node);
         let token = this.tokenList.previous(startToken);
 
         /*
@@ -368,8 +398,8 @@ export class Layout {
     }
 
     isSameLine(firstPartOrNode, secondPartOrNode) {
-        const startToken = this.getLastCodePart(firstPartOrNode);
-        const endToken = this.getFirstCodePart(secondPartOrNode);
+        const startToken = this.lastToken(firstPartOrNode);
+        const endToken = this.firstToken(secondPartOrNode);
         let token = this.tokenList.next(startToken);
         
         while (token && token !== endToken) {
@@ -387,7 +417,7 @@ export class Layout {
         const matcher = typeof valueOrFunction === "string"
             ? part => part.value === valueOrFunction
             : valueOrFunction;
-        const part = partOrNode ? this.getFirstCodePart(partOrNode) : this.tokenList.first();
+        const part = partOrNode ? this.firstToken(partOrNode) : this.tokenList.first();
         return this.tokenList.findNext(matcher, part);
     }
 
@@ -395,13 +425,13 @@ export class Layout {
         const matcher = typeof valueOrFunction === "string"
             ? part => part.value === valueOrFunction
             : valueOrFunction;
-        const part = partOrNode ? this.getFirstCodePart(partOrNode) : this.tokenList.last();
+        const part = partOrNode ? this.firstToken(partOrNode) : this.tokenList.last();
         return this.tokenList.findPrevious(matcher, part);
     }
 
     spaceBefore(partOrNode) {
 
-        let part = this.getFirstCodePart(partOrNode);
+        let part = this.firstToken(partOrNode);
 
         const previous = this.tokenList.previous(part);
         if (previous) {
@@ -422,7 +452,7 @@ export class Layout {
     }
 
     spaceAfter(partOrNode) {
-        let part = this.getLastCodePart(partOrNode);
+        let part = this.lastToken(partOrNode);
 
         const next = this.tokenList.next(part);
         if (next) {
@@ -443,7 +473,7 @@ export class Layout {
     }
 
     noSpaceAfter(partOrNode) {
-        let part = this.getLastCodePart(partOrNode);
+        let part = this.lastToken(partOrNode);
 
         const next = this.tokenList.next(part);
         if (next && this.tokenList.isWhitespace(next)) {
@@ -452,7 +482,7 @@ export class Layout {
     }
 
     noSpaceBefore(partOrNode) {
-        let part = this.getFirstCodePart(partOrNode);
+        let part = this.firstToken(partOrNode);
 
         const previous = this.tokenList.previous(part);
         if (previous && this.tokenList.isWhitespace(previous)) {
@@ -466,7 +496,7 @@ export class Layout {
     }
 
     semicolonAfter(partOrNode) {
-        let part = this.getLastCodePart(partOrNode);
+        let part = this.lastToken(partOrNode);
         
         // check to see what the next code part is
         const next = this.tokenList.next(part);
@@ -487,7 +517,7 @@ export class Layout {
     }
     
     commaAfter(partOrNode) {
-        let part = this.getLastCodePart(partOrNode);
+        let part = this.lastToken(partOrNode);
        
         // check to see what the next code part is
         const next = this.nextToken(part);
@@ -512,7 +542,7 @@ export class Layout {
     }
 
     lineBreakAfter(partOrNode) {
-        let part = this.getLastCodePart(partOrNode);
+        let part = this.lastToken(partOrNode);
 
         const next = this.tokenList.next(part);
         if (next) {
