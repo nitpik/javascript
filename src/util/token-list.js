@@ -40,6 +40,9 @@ const QUOTE_ALTERNATES = new Map([
     ["`", "\""]
 ]);
 
+const INDENT_INCREASE_CHARS = new Set(["{", "(", "["]);
+const INDENT_DECREASE_CHARS = new Set(["}", ")", "]"]);
+
 //-----------------------------------------------------------------------------
 // Helpers
 //-----------------------------------------------------------------------------
@@ -387,13 +390,47 @@ export class TokenList extends OrderedSet {
         return Boolean(previous && this.isWhitespace(token) && this.isLineBreak(previous));
     }
 
+    isIndentIncreaser(token) {
+        return (INDENT_INCREASE_CHARS.has(token.value) || this.isTemplateOpen(token)) &&
+            this.isLineBreak(this.next(token));
+    }
+
+    isIndentDecreaser(token) {
+        if (INDENT_DECREASE_CHARS.has(token.value) || this.isTemplateClose(token)) {
+            let lineBreak = this.findPreviousLineBreak(token);
+            return !lineBreak || (this.nextToken(lineBreak) === token);
+        }
+
+        return false;
+    }
+
     /**
      * Determines if a given token is part of a template literal.
      * @param {Token} token The token to check.
      * @returns {boolean} True if the token is a template, false if not.
      */
     isTemplate(token) {
-        return token.type === "Template";
+        return Boolean(token && token.type === "Template");
+    }
+
+    /**
+     * Determines if a given token is the start of a template literal with
+     * placeholders.
+     * @param {Token} token The token to check.
+     * @returns {boolean} True if the token is a template start, false if not.
+     */
+    isTemplateOpen(token) {
+        return this.isTemplate(token) && token.value.endsWith("${");
+    }
+
+    /**
+     * Determines if a given token is the end of a template literal with
+     * placeholders.
+     * @param {Token} token The token to check.
+     * @returns {boolean} True if the token is a template end, false if not.
+     */
+    isTemplateClose(token) {
+        return this.isTemplate(token) && token.value.startsWith("}");
     }
 
     /**

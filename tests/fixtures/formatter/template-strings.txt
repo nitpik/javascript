@@ -20,6 +20,10 @@ is
 ${
         word
     /*whatever*/}?`  );
+
+const f = `something ${
+word
+} else`;
 ---
 const a = `Hello world`;
 b(`hi ${name} there`);
@@ -40,3 +44,7 @@ is
 ${
     word
 /*whatever*/}?`);
+
+const f = `something ${
+    word
+} else`;

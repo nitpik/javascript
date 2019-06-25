@@ -86,37 +86,38 @@ function indentBlockComment(part, parts, options) {
 
 }
 
-function normalizeIndents(parts, options) {
+function normalizeIndents(tokenList, options) {
     const indent = options.indent;
     let indentLevel = 0;
-    let part = parts.first();
+    let token = tokenList.first();
 
-    while (part) {
+    while (token) {
 
-        if (/^[[{(]$/.test(part.value)) {
+        if (tokenList.isIndentIncreaser(token)) {
             indentLevel++;
         }
 
-        if (/^[\]})]$/.test(part.value)) {
-            indentLevel--;
-
+        if (tokenList.isIndentDecreaser(token)) {
+            
+            
             /*
              * The tricky part about decreasing indent is that the token
              * triggering the indent decrease will already be indented at the
              * previous level. To fix this, we need to find the first syntax
              * on the same line and then adjust the indent before that.
              */
-            const firstTokenOnLine = parts.findFirstTokenOrCommentOnLine(part);
-            const maybeIndentPart = parts.previous(firstTokenOnLine);
-
-            if (parts.isIndent(maybeIndentPart)) {
+            const firstTokenOnLine = tokenList.findFirstTokenOrCommentOnLine(token);
+            const maybeIndentPart = tokenList.previous(firstTokenOnLine);
+           
+            if (tokenList.isIndent(maybeIndentPart)) {
+                indentLevel--;
                 maybeIndentPart.value = indent.repeat(indentLevel);
             }
         }
 
-        if (parts.isIndent(part)) {
-            part.value = indent.repeat(indentLevel);
-        } else if (indentLevel > 0 && parts.isLineBreak(part)) {
+        if (tokenList.isIndent(token)) {
+            token.value = indent.repeat(indentLevel);
+        } else if (indentLevel > 0 && tokenList.isLineBreak(token)) {
             
             /*
              * If we made it here, it means that there's an indent missing.
@@ -128,19 +129,18 @@ function normalizeIndents(parts, options) {
              * Note that if the next part is a line break, that means the line
              * is empty and no extra whitespace should be added.
              */
-            const peekPart = parts.next(part);
-
-            if (!parts.isWhitespace(peekPart) && !parts.isLineBreak(peekPart)) {
-                parts.insertBefore({
+            const peekPart = tokenList.next(token);
+            if (!tokenList.isWhitespace(peekPart) && !tokenList.isLineBreak(peekPart)) {
+                tokenList.insertBefore({
                     type: "Whitespace",
                     value: indent.repeat(indentLevel)
                 }, peekPart);
             }
-        } else if (parts.isBlockComment(part)) {
-            indentBlockComment(part, parts, options);
+        } else if (tokenList.isBlockComment(token)) {
+            indentBlockComment(token, tokenList, options);
         }
 
-        part = parts.next(part);
+        token = tokenList.next(token);
     }
 }
 
