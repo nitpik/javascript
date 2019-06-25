@@ -10,6 +10,23 @@
 import { OrderedSet } from "@humanwhocodes/ordered-set";
 
 //-----------------------------------------------------------------------------
+// TypeDefs
+//-----------------------------------------------------------------------------
+
+/**
+ * @typedef TokenListOptions
+ * @property {boolean} collapseWhitespace If true, replaces multiple whitespace
+ *      characters with a single space.
+ * @property {string} indent The string to use as the indent.
+ * @property {string} lineEndings The string to use as a line ending.
+ * @property {int} maxEmptyLines The maximum number of empty lines permitted
+ *      before lines are deleted from the token list.
+ * @property {string} quotes The string to use to quote strings.
+ * @property {boolean} trimTrailingWhitespace If true, trims whitespace before
+ *      line breaks.
+ */
+
+//-----------------------------------------------------------------------------
 // Private
 //-----------------------------------------------------------------------------
 
@@ -43,6 +60,7 @@ const QUOTE_ALTERNATES = new Map([
 const INDENT_INCREASE_CHARS = new Set(["{", "(", "["]);
 const INDENT_DECREASE_CHARS = new Set(["}", ")", "]"]);
 
+/** @type TokenListOptions */
 const DEFAULT_OPTIONS = {
     indent: 4,
     lineEndings: "\n",
@@ -245,6 +263,12 @@ export class TokenList extends OrderedSet {
         this[originalIndents] = new Map();
     }
 
+    /**
+     * 
+     * @param {Node} ast The AST to build a token list for. 
+     * @param {string} text The original text of the source code. 
+     * @param {TokenListOptions} options The options to apply to the token list. 
+     */
     static fromAST(ast, text, options) {
         const list = new TokenList();
         buildTokenList(list, ast, text, {
