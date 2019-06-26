@@ -38,7 +38,22 @@ const wrappers = {
         layout.indent(questionMark);
         layout.lineBreakBefore(colon);
         layout.indent(colon);
-    }
+    },
+
+    MemberExpression(node, layout) {
+
+        // don't wrap member expressions with computed properties
+        if (node.computed) {
+            return;
+        }
+
+        const dot = layout.findPrevious(".", node.property);
+        
+        layout.lineBreakBefore(dot);
+        layout.indent(dot);
+    },
+
+    
 };
 
 const unwrappers = {

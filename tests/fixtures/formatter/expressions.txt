@@ -8,6 +8,8 @@ f(( )=>{})
 f(async( /* foo */ )=>{})
 f(( a,b )=>{})
 f(a=>b);
+somethingLongerThanNecessary.anotherLongerThanNecessaryThing.andOneMoreLongThing;
+let x =somethingLongerThanNecessary.anotherLongerThanNecessaryThing().andOneMoreLongThing();
 ---
 somethingLongerThanNecessary
     ? anotherLongerThanNecessaryThing
@@ -17,3 +19,9 @@ f(() => {});
 f(async (/* foo */) => {});
 f((a, b) => {});
 f(a => b);
+somethingLongerThanNecessary
+    .anotherLongerThanNecessaryThing
+    .andOneMoreLongThing;
+let x = somethingLongerThanNecessary
+    .anotherLongerThanNecessaryThing()
+    .andOneMoreLongThing();

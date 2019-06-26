@@ -289,6 +289,11 @@ export class Layout {
         return characterCount;
     }
 
+    isLineTooLong(tokenOrNode) {
+        const characterCount = this.getLineLength(tokenOrNode);
+        return characterCount > this.options.maxLineLength;
+    }
+
     getIndent(tokenOrNode) {
         const startToken = this.firstToken(tokenOrNode);
         let token = this.tokenList.previous(startToken);

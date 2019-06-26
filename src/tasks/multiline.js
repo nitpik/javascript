@@ -14,10 +14,35 @@
 
 export default function(context) {
     const layout = context.layout;
+    
     return {
         
         ConditionalExpression(node) {
-            if (!layout.isMultiLine(node) && (layout.getLineLength(node) > layout.options.maxLineLength)) {
+            if (!layout.isMultiLine(node) && layout.isLineTooLong(node)) {
+                layout.wrap(node);
+            }
+        },
+
+
+        CallExpression(node, parent) {
+
+            // covers chained member expressions like `a.b().c()`
+            if (parent.type === "MemberExpression" && layout.isMultiLine(parent)) {
+                if (node.callee.type === "MemberExpression") {
+                    layout.wrap(node.callee);
+                }
+            }
+        },
+
+        MemberExpression(node, parent) {
+
+            // Covers chained member expressions like `a.b.c`
+            if (parent.type === "MemberExpression" && layout.isMultiLine(parent)) {
+                layout.wrap(node);
+                return;
+            }
+
+            if (layout.isLineTooLong(node)) {
                 layout.wrap(node);
             }
         },
