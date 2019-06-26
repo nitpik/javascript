@@ -40,7 +40,8 @@ const SYNTAX_TOKENS = new Set([
     "Boolean",
     "Punctuator",
     "Null",
-    "Template"
+    "Template",
+    "Identifier"
 ]);
 
 const NON_WHITESPACE_TOKENS = new Set([
@@ -372,7 +373,7 @@ export class TokenList extends OrderedSet {
      * @returns {boolean} True if the token is whitespace, false if not.
      */
     isWhitespace(token) {
-        return token.type === "Whitespace";
+        return Boolean(token && token.type === "Whitespace");
     }
 
     /**
@@ -381,7 +382,7 @@ export class TokenList extends OrderedSet {
      * @returns {boolean} True if the token is a line break, false if not.
      */
     isLineBreak(token) {
-        return token.type === "LineBreak";
+        return Boolean(token && token.type === "LineBreak");
     }
 
     /**

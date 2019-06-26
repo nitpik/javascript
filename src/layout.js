@@ -267,7 +267,7 @@ export class Layout {
         let current = this.tokenList.findFirstTokenOrCommentOnLine(token);
         const previous = this.tokenList.previous(current);
         let characterCount = 0;
-
+        
         // first count the indent, if any
         if (this.tokenList.isIndent(previous)) {
             if (previous.value.includes("\t")) {
@@ -278,7 +278,7 @@ export class Layout {
         }
 
         // then count the other tokens
-        while (!this.tokenList.isLineBreak(current)) {
+        while (current && !this.tokenList.isLineBreak(current)) {
             characterCount += current.value.length;
             current = this.tokenList.next(current);
         }
