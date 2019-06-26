@@ -1,11 +1,17 @@
-{}
+{
+    "maxLineLength": 80
+}
 ---
+somethingLongerThanNecessary ? anotherLongerThanNecessaryThing : andOneMoreLongThing;
 a?b:c
 f(( )=>{})
 f(async( /* foo */ )=>{})
 f(( a,b )=>{})
 f(a=>b);
 ---
+somethingLongerThanNecessary
+    ? anotherLongerThanNecessaryThing
+    : andOneMoreLongThing;
 a ? b : c;
 f(() => {});
 f(async (/* foo */) => {});

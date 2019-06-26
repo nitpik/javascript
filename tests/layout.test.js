@@ -9,8 +9,6 @@
 
 import { Layout } from "../src/layout.js";
 import espree from "espree";
-import fs from "fs";
-import path from "path";
 import chai from "chai";
 
 const expect = chai.expect;

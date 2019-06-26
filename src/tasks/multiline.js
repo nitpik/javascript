@@ -14,8 +14,13 @@
 
 export default function(context) {
     const layout = context.layout;
-
     return {
+        
+        ConditionalExpression(node) {
+            if (!layout.isMultiLine(node) && (layout.getLineLength(node) > layout.options.maxLineLength)) {
+                layout.wrap(node);
+            }
+        },
 
         ArrayExpression(node) {
             if (layout.isMultiLine(node)) {

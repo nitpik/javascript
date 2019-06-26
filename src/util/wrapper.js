@@ -30,23 +30,33 @@ function unwrapObjectOrArrayLiteral(node, layout, tokenList) {
 }
 
 const wrappers = {
-
+    ConditionalExpression(node, layout) {
+        const questionMark = layout.findPrevious("?", node.consequent);
+        const colon = layout.findNext(":", node.consequent);
+        
+        layout.lineBreakBefore(questionMark);
+        layout.indent(questionMark);
+        layout.lineBreakBefore(colon);
+        layout.indent(colon);
+    }
 };
 
 const unwrappers = {
     ArrayExpression: unwrapObjectOrArrayLiteral,
     ObjectExpression: unwrapObjectOrArrayLiteral,
-    ConditionalExpression(node, layout, tokenList) {
-        const firstToken = layout.getFirstCodePart(node);
+    ConditionalExpression(node, layout) {
+        const firstToken = layout.firstToken(node);
         const questionMark = layout.findPrevious("?", node.consequent);
         const colon = layout.findNext(":", node.consequent);
 
         if (!layout.isSameLine(firstToken, questionMark)) {
-            layout.moveToPreviousLine(questionMark);
+            layout.noLineBreakBefore(questionMark);
+            layout.spaceBefore(questionMark);
         }
 
         if (!layout.isSameLine(questionMark, colon)) {
-            layout.moveToPreviousLine(questionMark);
+            layout.noLineBreakBefore(colon);
+            layout.spaceBefore(colon);
         }
     }
 };

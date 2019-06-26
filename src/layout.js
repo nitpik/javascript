@@ -40,7 +40,8 @@ const DEFAULT_OPTIONS = {
     collapseWhitespace: true,
     trailingCommas: true,
     maxEmptyLines: 1,
-    maxLineLength: Infinity
+    maxLineLength: Infinity,
+    trimTrailingWhitespace: true
 };
 
 //-----------------------------------------------------------------------------
@@ -230,8 +231,10 @@ export class Layout {
         return this.tokenList.has(tokenOrNode) ? tokenOrNode : this.nodeParts.get(tokenOrNode).lastToken;
     }
 
-    boundaryTokens(node) {
-        return this.nodeParts.get(node);
+    boundaryTokens(tokenOrNode) {
+        return this.tokenList.has(tokenOrNode)
+            ? { firstToken: tokenOrNode, lastToken: tokenOrNode }
+            : this.nodeParts.get(tokenOrNode);
     }
 
     nextToken(part) {
@@ -286,8 +289,8 @@ export class Layout {
         return characterCount;
     }
 
-    getIndent(node) {
-        const startToken = this.firstToken(node);
+    getIndent(tokenOrNode) {
+        const startToken = this.firstToken(tokenOrNode);
         let token = this.tokenList.previous(startToken);
 
         /*
@@ -322,13 +325,13 @@ export class Layout {
 
     /**
      * Indents the given node only if the node is the first syntax on the line.
-     * @param {Node} node 
+     * @param {Node} tokenOrNode The token or node to indent.
      * @param {int} [levels=1] The number of levels to indent. If this value is
      *      0 then it is considered to be 1. Negative numbers decrease indentation.
      * returns {boolean} True if the indent was performed, false if not. 
      */
-    indent(node, levels = 1) {
-        const indentPart = this.getIndent(node);
+    indent(tokenOrNode, levels = 1) {
+        const indentPart = this.getIndent(tokenOrNode);
         if (!indentPart) {
             return false;
 
@@ -340,9 +343,8 @@ export class Layout {
         }
 
         const effectiveIndent = this.options.indent.repeat(Math.abs(levels));
-
         let indentToken = indentPart.token;
-        const { firstToken, lastToken } = this.boundaryTokens(node);
+        const { firstToken, lastToken } = this.boundaryTokens(tokenOrNode);
 
         // if there is no indent token, create one
         if (!indentToken) {
@@ -541,27 +543,48 @@ export class Layout {
         return false;
     }
 
-    lineBreakAfter(partOrNode) {
-        let part = this.lastToken(partOrNode);
+    lineBreakAfter(tokenOrNode) {
+        let token = this.lastToken(tokenOrNode);
 
-        const next = this.tokenList.next(part);
+        const next = this.tokenList.next(token);
         if (next) {
-            if (!this.tokenList.isLineBreak(part)) {
+            if (!this.tokenList.isLineBreak(next)) {
                 this.tokenList.insertAfter({
                     type: "LineBreak",
                     value: this.options.lineEndings
-                }, part);
+                }, token);
             }
         } else {
             this.tokenList.insertAfter({
                 type: "LineBreak",
                 value: this.options.lineEndings
-            }, part);
+            }, token);
+        }
+    }
+    
+    lineBreakBefore(tokenOrNode) {
+        let token = this.firstToken(tokenOrNode);
+        const previousToken = this.tokenList.previous(token);
+        
+        if (previousToken) {
+            if (!this.tokenList.isLineBreak(previousToken)) {
+                this.tokenList.insertBefore({
+                    type: "LineBreak",
+                    value: this.options.lineEndings
+                }, token);
+
+                // strip trailing whitespace
+                if (this.options.trimTrailingWhitespace && this.tokenList.isWhitespace(previousToken)) {
+                    this.tokenList.delete(previousToken);
+                }
+
+            }
+
         }
     }
 
     wrap(node) {
-
+        this.wrapper.wrap(node, this, this.tokenList);
     }
 
     noWrap(node) {
