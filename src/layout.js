@@ -566,6 +566,23 @@ export class Layout {
             }, token);
         }
     }
+
+    noLineBreakAfter(tokenOrNode) {
+        let token = this.lastToken(tokenOrNode);
+
+        const lineBreak = this.tokenList.next(token);
+        if (lineBreak) {
+            if (this.tokenList.isLineBreak(lineBreak)) {
+                this.tokenList.delete(lineBreak);
+
+                // collapse whitespace if necessary
+                const nextToken = this.tokenList.next(token);
+                if (this.tokenList.isWhitespace(nextToken) && this.options.collapseWhitespace) {
+                    nextToken.value = " ";
+                }
+            }
+        }
+    }
     
     lineBreakBefore(tokenOrNode) {
         let token = this.firstToken(tokenOrNode);
@@ -578,11 +595,32 @@ export class Layout {
                     value: this.options.lineEndings
                 }, token);
 
-                // strip trailing whitespace
+                // trim trailing whitespace if necessary
                 if (this.options.trimTrailingWhitespace && this.tokenList.isWhitespace(previousToken)) {
                     this.tokenList.delete(previousToken);
                 }
 
+            }
+
+        }
+    }
+
+    noLineBreakBefore(tokenOrNode) {
+        const token = this.firstToken(tokenOrNode);
+        let previousToken = this.tokenList.previous(token);
+        
+        if (previousToken) {
+
+            // TODO: Maybe figure out if indent should be deleted or converted to one space?
+
+            // delete any indent
+            if (this.tokenList.isIndent(previousToken)) {
+                this.tokenList.delete(previousToken);
+                previousToken = this.tokenList.previous(token);
+            }
+
+            if (this.tokenList.isLineBreak(previousToken)) {
+                this.tokenList.delete(previousToken);
             }
 
         }

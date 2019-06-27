@@ -1,4 +1,6 @@
-{}
+{
+    "maxLineLength": 80
+}
 ---
 const a   =   `Hello world`;
 b(`hi ${ name } there`)
@@ -21,9 +23,11 @@ ${
         word
     /*whatever*/}?`  );
 
-const f = `something ${
+f`something ${
 word
 } else`;
+
+const longTemplateString = `first part ${ part } second part ${ part2 } third part ${ part4 } fourth part`;
 ---
 const a = `Hello world`;
 b(`hi ${name} there`);
@@ -45,6 +49,14 @@ ${
     word
 /*whatever*/}?`);
 
-const f = `something ${
+f`something ${
     word
 } else`;
+
+const longTemplateString = `first part ${
+    part
+} second part ${
+    part2
+} third part ${
+    part4
+} fourth part`;

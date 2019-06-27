@@ -18,6 +18,9 @@ const expect = chai.expect;
 //-----------------------------------------------------------------------------
 
 
+function parse(text) {
+    return espree.parse(text, { range: true, tokens: true, comment: true, ecmaVersion: 2019 });
+}
 
 //-----------------------------------------------------------------------------
 // Tests
@@ -25,11 +28,35 @@ const expect = chai.expect;
 
 describe("Layout", () => {
 
+    describe("noWrap()", () => {
+        it("should unwrap a template literal", () => {
+            const text = "`start ${\n    word\n} end`;";
+            const expected = "`start ${word} end`;";
+            const ast = parse(text);
+            const layout = new Layout({ ast, text });
+            layout.noWrap(ast.body[0].expression);
+            expect(layout.toString()).to.equal(expected);
+
+        });
+    });
+
+    describe("wrap()", () => {
+        it("should wrap a template literal", () => {
+            const text = "`start ${word} end`;";
+            const expected = "`start ${\n    word\n} end`;";
+            const ast = parse(text);
+            const layout = new Layout({ ast, text });
+            layout.wrap(ast.body[0].expression);
+            expect(layout.toString()).to.equal(expected);
+
+        });
+    });
+
     describe("getLineLength()", () => {
 
         it("should return the correct line length when the line has no indent", () => {
             const text = "a.b();";
-            const ast = espree.parse(text, { range: true, tokens: true, comment: true });
+            const ast = parse(text);
             const layout = new Layout({ ast, text });
             const length = layout.getLineLength(ast.body[0]);
             expect(length).to.equal(6);
@@ -37,7 +64,7 @@ describe("Layout", () => {
 
         it("should return the correct line length when the line has an indent", () => {
             const text = "if (foo){\n    a.b();\n}";
-            const ast = espree.parse(text, { range: true, tokens: true, comment: true });
+            const ast = parse(text);
             const layout = new Layout({ ast, text });
             const length = layout.getLineLength(ast.body[0].consequent);
             expect(length).to.equal(10);
@@ -45,7 +72,7 @@ describe("Layout", () => {
 
         it("should return the correct line length when the line has a tab indent", () => {
             const text = "if (foo){\n\ta.b();\n}";
-            const ast = espree.parse(text, { range: true, tokens: true, comment: true });
+            const ast = parse(text);
             const layout = new Layout({ ast, text }, { indent: "\t", tabWidth: 4 });
             const length = layout.getLineLength(ast.body[0].consequent);
             expect(length).to.equal(10);

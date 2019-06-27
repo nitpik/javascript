@@ -17,13 +17,6 @@ export default function(context) {
     
     return {
         
-        ConditionalExpression(node) {
-            if (!layout.isMultiLine(node) && layout.isLineTooLong(node)) {
-                layout.wrap(node);
-            }
-        },
-
-
         CallExpression(node, parent) {
 
             // covers chained member expressions like `a.b().c()`
@@ -34,6 +27,12 @@ export default function(context) {
             }
         },
 
+        ConditionalExpression(node) {
+            if (!layout.isMultiLine(node) && layout.isLineTooLong(node)) {
+                layout.wrap(node);
+            }    
+        },    
+
         MemberExpression(node, parent) {
 
             // Covers chained member expressions like `a.b.c`
@@ -42,6 +41,12 @@ export default function(context) {
                 return;
             }
 
+            if (layout.isLineTooLong(node)) {
+                layout.wrap(node);
+            }
+        },
+
+        TemplateLiteral(node) {
             if (layout.isLineTooLong(node)) {
                 layout.wrap(node);
             }

@@ -53,6 +53,13 @@ const wrappers = {
         layout.indent(dot);
     },
 
+    TemplateLiteral(node, layout) {
+        node.expressions.forEach(child => {
+            layout.lineBreakBefore(child);
+            layout.lineBreakAfter(child);
+            layout.indent(child);
+        });
+    }
     
 };
 
@@ -73,7 +80,15 @@ const unwrappers = {
             layout.noLineBreakBefore(colon);
             layout.spaceBefore(colon);
         }
+    },
+
+    TemplateLiteral(node, layout) {
+        node.expressions.forEach(child => {
+            layout.noLineBreakBefore(child);
+            layout.noLineBreakAfter(child);
+        });
     }
+
 };
 
 //-----------------------------------------------------------------------------
