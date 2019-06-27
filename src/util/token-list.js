@@ -147,7 +147,9 @@ function buildTokenList(list, ast, text, options) {
         // next part is a token
         if (token && token.range[0] === index) {
             const newToken = {
-                ...token
+                type: token.type,
+                value: token.value,
+                range: token.range
             };
 
             if (newToken.type === "String") {

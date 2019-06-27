@@ -1,0 +1,41 @@
+{
+}
+---
+foo
+    ? bar
+    : baz;
+---
+[
+  {
+    "type": "Identifier",
+    "value": "foo",
+    "range": [ 0, 3 ]
+  },
+  { "type": "LineBreak", "value": "\n", "range": [ 3, 3 ] },
+  { "type": "Whitespace", "value": "    ", "range": [ 4, 8 ] },
+  { "type": "Punctuator", "value": "?", "range": [ 8, 9 ] },
+  { "type": "Whitespace", "value": " ", "range": [ 9, 10 ] },
+  {
+    "type": "Identifier",
+    "value": "bar",
+    "range": [ 10, 13 ]
+  },
+  { "type": "LineBreak", "value": "\n", "range": [ 13, 13 ] },
+  { "type": "Whitespace", "value": "    ", "range": [ 14, 18 ] },
+  {
+    "type": "Punctuator",
+    "value": ":",
+    "range": [ 18, 19 ]
+  },
+  { "type": "Whitespace", "value": " ", "range": [ 19, 20 ] },
+  {
+    "type": "Identifier",
+    "value": "baz",
+    "range": [ 20, 23 ]
+  },
+  {
+    "type": "Punctuator",
+    "value": ";",
+    "range": [ 23, 24 ]
+  }
+]

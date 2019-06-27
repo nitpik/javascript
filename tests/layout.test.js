@@ -38,6 +38,16 @@ describe("Layout", () => {
             expect(layout.toString()).to.equal(expected);
 
         });
+
+        it("should unwrap a conditional", () => {
+            const text = "foo\n    ? bar\n    : baz;";
+            const expected = "foo ? bar : baz;";
+            const ast = parse(text);
+            const layout = new Layout({ ast, text }, { collapseWhitespace: false });
+            layout.noWrap(ast.body[0].expression);
+            expect(layout.toString()).to.equal(expected);
+
+        });
     });
 
     describe("wrap()", () => {

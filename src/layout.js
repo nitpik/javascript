@@ -113,7 +113,12 @@ function normalizeIndents(tokenList, options) {
            
             if (tokenList.isIndent(maybeIndentPart)) {
                 indentLevel--;
-                maybeIndentPart.value = indent.repeat(indentLevel);
+
+                if (indentLevel > 0) {
+                    maybeIndentPart.value = indent.repeat(indentLevel);
+                } else {
+                    tokenList.delete(maybeIndentPart);
+                }
             }
         }
 
@@ -436,47 +441,52 @@ export class Layout {
         return this.tokenList.findPrevious(matcher, part);
     }
 
-    spaceBefore(partOrNode) {
+    spaceBefore(tokenOrNode) {
 
-        let part = this.firstToken(partOrNode);
+        let firstToken = this.firstToken(tokenOrNode);
 
-        const previous = this.tokenList.previous(part);
-        if (previous) {
-            if (this.tokenList.isWhitespace(previous) && !this.tokenList.isIndent(previous)) {
-                previous.value = " ";
-            } else if (!this.tokenList.isLineBreak(previous)) {
+        const previousToken = this.tokenList.previous(firstToken);
+        if (previousToken) {
+            console.dir(firstToken);
+            console.dir(previousToken);
+
+            if (this.tokenList.isWhitespace(previousToken) && !this.tokenList.isIndent(previousToken)) {
+                console.log("change");
+                previousToken.value = " ";
+            } else if (!this.tokenList.isLineBreak(previousToken)) {
+                console.log("insert");
                 this.tokenList.insertBefore({
                     type: "Whitespace",
                     value: " "
-                }, part);
+                }, firstToken);
             }
         } else {
             this.tokenList.insertBefore({
                 type: "Whitespace",
                 value: " "
-            }, part);
+            }, firstToken);
         }
     }
 
     spaceAfter(partOrNode) {
-        let part = this.lastToken(partOrNode);
+        let lastToken = this.lastToken(partOrNode);
 
-        const next = this.tokenList.next(part);
-        if (next) {
-            if (this.tokenList.isWhitespace(next)) {
-                next.value = " ";
-            } else if (!this.tokenList.isLineBreak(next)) {
+        const nextToken = this.tokenList.next(lastToken);
+        if (nextToken) {
+            if (this.tokenList.isWhitespace(nextToken)) {
+                nextToken.value = " ";
+            } else if (!this.tokenList.isLineBreak(nextToken)) {
                 this.tokenList.insertAfter({
                     type: "Whitespace",
                     value: " "
-                }, part);
+                }, lastToken);
             }
         }
     }
 
     spaces(partOrNode) {
-        this.spaceAfter(partOrNode);
         this.spaceBefore(partOrNode);
+        this.spaceAfter(partOrNode);
     }
 
     noSpaceAfter(partOrNode) {
@@ -612,7 +622,6 @@ export class Layout {
         if (previousToken) {
 
             // TODO: Maybe figure out if indent should be deleted or converted to one space?
-
             // delete any indent
             if (this.tokenList.isIndent(previousToken)) {
                 this.tokenList.delete(previousToken);

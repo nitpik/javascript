@@ -148,9 +148,14 @@ export default function(context) {
         ConditionalExpression(node) {
             const questionMark = layout.findPrevious("?", node.consequent);
             const colon = layout.findNext(":", node.consequent);
-
-            layout.spaces(questionMark);
-            layout.spaces(colon);
+            
+            console.log("PPPP")
+            console.dir(layout.findPrevious(token => token.type === "Whitespace"), questionMark);
+            console.log("PPPP")
+            
+            // layout.spaceBefore(questionMark);
+            // layout.spaces(questionMark);
+            // layout.spaces(colon);
         },
 
         DoWhileStatement(node) {
