@@ -85,6 +85,7 @@ describe("Layout", () => {
             const ast = parse(text);
             const layout = new Layout({ ast, text });
             const length = layout.getLineLength(ast.body[0]);
+            expect(text).to.equal(layout.toString());
             expect(length).to.equal(6);
         });
 

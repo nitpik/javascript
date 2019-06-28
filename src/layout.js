@@ -390,6 +390,7 @@ export class Layout {
         return true;
     }
 
+
     /**
      * Determines if a given node's syntax spans multiple lines.
      * @param {Node} node The node to check.
@@ -595,7 +596,7 @@ export class Layout {
         const previousToken = this.tokenList.previous(token);
         
         if (previousToken) {
-            if (!this.tokenList.isLineBreak(previousToken)) {
+            if (!this.tokenList.isLineBreak(previousToken) && !this.tokenList.isIndent(previousToken)) {
                 this.tokenList.insertBefore({
                     type: "LineBreak",
                     value: this.options.lineEndings

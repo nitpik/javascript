@@ -22,6 +22,10 @@ function normalizePunctuatorSpacing(layout) {
                 layout.spaceAfter(token);
                 break;
                 
+            case ".":
+                layout.noSpaces(token);
+                break;
+
             default:
                 if (token.value.includes("=")) {
                     layout.spaceBefore(token);

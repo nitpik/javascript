@@ -440,11 +440,21 @@ export class TokenList extends OrderedSet {
         );
     }
 
+    /**
+     * Determines if the indent should increase after this token.
+     * @param {Token} token The token to check. 
+     * @returns {boolean} True if the indent should be increased, false if not.
+     */
     isIndentIncreaser(token) {
         return (INDENT_INCREASE_CHARS.has(token.value) || this.isTemplateOpen(token)) &&
             this.isLineBreak(this.next(token));
     }
 
+    /**
+     * Determines if the indent should decrease after this token.
+     * @param {Token} token The token to check.
+     * @returns {boolean} True if the indent should be decreased, false if not.
+     */
     isIndentDecreaser(token) {
         if (INDENT_DECREASE_CHARS.has(token.value) || this.isTemplateClose(token)) {
             let lineBreak = this.findPreviousLineBreak(token);
