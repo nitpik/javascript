@@ -1,0 +1,31 @@
+{
+}
+---
+    `start`;
+---
+[
+    {
+        "type": "Whitespace",
+        "value": "    ",
+        "range": [
+            0,
+            4
+        ]
+    },
+    {
+        "type": "Template",
+        "value": "`start`",
+        "range": [
+            4,
+            11
+        ]
+    },
+    {
+        "type": "Punctuator",
+        "value": ";",
+        "range": [
+            11,
+            12
+        ]
+    }
+]

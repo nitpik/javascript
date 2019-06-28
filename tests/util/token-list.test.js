@@ -27,7 +27,7 @@ function parse(text) {
 // Tests
 //-----------------------------------------------------------------------------
 
-describe.only("TokenList", () => {
+describe("TokenList", () => {
 
     describe("fixtures", () => {
         const tokenListFixturesPath = "./tests/fixtures/token-list";

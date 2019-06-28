@@ -97,10 +97,7 @@ function normalizeIndents(tokenList, options) {
 
         if (tokenList.isIndentIncreaser(token)) {
             indentLevel++;
-        }
-
-        if (tokenList.isIndentDecreaser(token)) {
-            
+        } else if (tokenList.isIndentDecreaser(token)) {
             
             /*
              * The tricky part about decreasing indent is that the token
@@ -120,10 +117,14 @@ function normalizeIndents(tokenList, options) {
                     tokenList.delete(maybeIndentPart);
                 }
             }
-        }
-
-        if (tokenList.isIndent(token)) {
-            token.value = indent.repeat(indentLevel);
+        } else if (tokenList.isIndent(token)) {
+            if (indentLevel > 0) {
+                token.value = indent.repeat(indentLevel);
+            } else {
+                const previousToken = tokenList.previous(token);
+                tokenList.delete(token);
+                token = previousToken;
+            }
         } else if (indentLevel > 0 && tokenList.isLineBreak(token)) {
             
             /*
@@ -447,14 +448,9 @@ export class Layout {
 
         const previousToken = this.tokenList.previous(firstToken);
         if (previousToken) {
-            console.dir(firstToken);
-            console.dir(previousToken);
-
             if (this.tokenList.isWhitespace(previousToken) && !this.tokenList.isIndent(previousToken)) {
-                console.log("change");
                 previousToken.value = " ";
             } else if (!this.tokenList.isLineBreak(previousToken)) {
-                console.log("insert");
                 this.tokenList.insertBefore({
                     type: "Whitespace",
                     value: " "

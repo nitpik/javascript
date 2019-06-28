@@ -29,7 +29,7 @@ module.exports ={
     overrides:[
         {
             // tests are in commonjs
-            files:["tests/*.js"],
+            files:["tests/**/*.js"],
             env:{
                 mocha:true,
             }

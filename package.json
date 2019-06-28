@@ -6,7 +6,7 @@
   "scripts": {
     "build": "rollup -c",
     "lint": "eslint src/ tests/",
-    "test": "mocha -r esm tests/"
+    "test": "mocha -r esm tests/ --recursive"
   },
   "keywords": [],
   "author": "nzakas",

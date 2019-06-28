@@ -207,13 +207,14 @@ function buildTokenList(list, ast, text, options) {
                 let value = text.slice(startIndex, index);
 
                 /*
-                 * If the previous part is a line break, then this is an indent
-                 * and should not be changed. Otherwise, normalize the whitespace
-                 * to a single space.
+                 * If the previous part is a line break or start of the file
+                 * (list is empty), then this is an indent and should not be
+                 * changed. Otherwise, collapse the whitespace to a single
+                 * space.
                  */
                 if (options.collapseWhitespace) {
                     const previous = list.last();
-                    if (!list.isLineBreak(previous)) {
+                    if (!list.isLineBreak(previous) && !list.isEmpty()) {
                         value = " ";
                     }
                 }
@@ -426,13 +427,17 @@ export class TokenList extends OrderedSet {
 
     /**
      * Determines if a given token is an indent. Indents are whitespace
-     * immediately preceded by a line break.
+     * immediately preceded by a line break or `undefined` if the token
+     * is the first whitespace in the file.
      * @param {Token} token The token to check.
      * @returns {boolean} True if the token is an indent, false if not. 
      */
     isIndent(token) {
         const previous = this.previous(token);
-        return Boolean(previous && this.isWhitespace(token) && this.isLineBreak(previous));
+        return Boolean(
+            this.isWhitespace(token) &&
+            (!previous || this.isLineBreak(previous))
+        );
     }
 
     isIndentIncreaser(token) {
@@ -476,6 +481,14 @@ export class TokenList extends OrderedSet {
      */
     isTemplateClose(token) {
         return this.isTemplate(token) && token.value.startsWith("}");
+    }
+
+    /**
+     * Determines if the list is empty.
+     * @returns {boolean} True if the list is empty, false if not.
+     */
+    isEmpty() {
+        return !this.first();
     }
 
     /**

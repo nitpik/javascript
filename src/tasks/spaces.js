@@ -149,13 +149,9 @@ export default function(context) {
             const questionMark = layout.findPrevious("?", node.consequent);
             const colon = layout.findNext(":", node.consequent);
             
-            console.log("PPPP")
-            console.dir(layout.findPrevious(token => token.type === "Whitespace"), questionMark);
-            console.log("PPPP")
-            
-            // layout.spaceBefore(questionMark);
-            // layout.spaces(questionMark);
-            // layout.spaces(colon);
+            layout.spaceBefore(questionMark);
+            layout.spaces(questionMark);
+            layout.spaces(colon);
         },
 
         DoWhileStatement(node) {
@@ -374,8 +370,7 @@ export default function(context) {
             const [firstQuasi, ...quasis] = node.quasis;
             if (quasis.length) {
                 layout.noSpaceAfter(firstQuasi);
-                let previousQuasi = firstQuasi;
-
+                
                 quasis.forEach(quasi => {
                     layout.noSpaceBefore(quasi);
                     layout.noSpaceAfter(quasi);

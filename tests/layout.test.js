@@ -28,6 +28,22 @@ function parse(text) {
 
 describe("Layout", () => {
 
+
+    describe("Indents", () => {
+
+        it("should remove whitespace tokens when their strings are empty", () => {
+            const text = "    `start`;";
+            const expected = "`start`;";
+            const ast = parse(text);
+            const layout = new Layout({ ast, text });
+
+            const result = layout.findNext(token => token.type === "Whitespace", ast);
+            expect(layout.toString()).to.equal(expected);
+            expect(result).to.equal(undefined);
+        });
+
+    });    
+
     describe("noWrap()", () => {
         it("should unwrap a template literal", () => {
             const text = "`start ${\n    word\n} end`;";
