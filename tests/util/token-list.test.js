@@ -40,7 +40,6 @@ describe("TokenList", () => {
             it(`Test in ${ fileName } should represent tokens correctly`, () => {
                 const ast = parse(source);
                 const tokenList = TokenList.fromAST(ast, source, JSON.parse(options));
-                
                 expect([...tokenList]).to.deep.equal(JSON.parse(expected));
             });
         });

@@ -12,9 +12,6 @@ function isMemberExpression(node) {
     return Boolean(node && node.type === "MemberExpression");
 }
 
-function isCallExpression(node) {
-    return Boolean(node && node.type === "CallExpression");
-}
 
 //-----------------------------------------------------------------------------
 // Task

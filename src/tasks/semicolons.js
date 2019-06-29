@@ -3,6 +3,14 @@
  * @author Nicholas C. Zakas
  */
 
+//-----------------------------------------------------------------------------
+// Data
+//-----------------------------------------------------------------------------
+
+const variableDeclarationExceptions = new Set([
+    "ForInStatement",
+    "ForOfStatement",
+]);
 
 //-----------------------------------------------------------------------------
 // Task
@@ -43,8 +51,11 @@ export default function(context) {
                 adjustSemicolon(node);
             }
         },
-        VariableDeclaration(node) {
-            adjustSemicolon(node);
+        VariableDeclaration(node, parent) {
+
+            if (!variableDeclarationExceptions.has(parent.type) || parent.left !== node) {
+                adjustSemicolon(node);
+            }
         }
 
     }

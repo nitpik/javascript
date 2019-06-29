@@ -1,0 +1,267 @@
+{
+}
+---
+for (const foo of bar)
+baz()
+    
+for (const foo in bar)
+baz()
+---
+[
+    {
+        "type": "Keyword",
+        "value": "for",
+        "range": [
+            0,
+            3
+        ]
+    },
+    {
+        "type": "Whitespace",
+        "value": " ",
+        "range": [
+            3,
+            4
+        ]
+    },
+    {
+        "type": "Punctuator",
+        "value": "(",
+        "range": [
+            4,
+            5
+        ]
+    },
+    {
+        "type": "Keyword",
+        "value": "const",
+        "range": [
+            5,
+            10
+        ]
+    },
+    {
+        "type": "Whitespace",
+        "value": " ",
+        "range": [
+            10,
+            11
+        ]
+    },
+    {
+        "type": "Identifier",
+        "value": "foo",
+        "range": [
+            11,
+            14
+        ]
+    },
+    {
+        "type": "Whitespace",
+        "value": " ",
+        "range": [
+            14,
+            15
+        ]
+    },
+    {
+        "type": "Identifier",
+        "value": "of",
+        "range": [
+            15,
+            17
+        ]
+    },
+    {
+        "type": "Whitespace",
+        "value": " ",
+        "range": [
+            17,
+            18
+        ]
+    },
+    {
+        "type": "Identifier",
+        "value": "bar",
+        "range": [
+            18,
+            21
+        ]
+    },
+    {
+        "type": "Punctuator",
+        "value": ")",
+        "range": [
+            21,
+            22
+        ]
+    },
+    {
+        "type": "LineBreak",
+        "value": "\n",
+        "range": [
+            22,
+            22
+        ]
+    },
+    {
+        "type": "Identifier",
+        "value": "baz",
+        "range": [
+            23,
+            26
+        ]
+    },
+    {
+        "type": "Punctuator",
+        "value": "(",
+        "range": [
+            26,
+            27
+        ]
+    },
+    {
+        "type": "Punctuator",
+        "value": ")",
+        "range": [
+            27,
+            28
+        ]
+    },
+    {
+        "type": "LineBreak",
+        "value": "\n",
+        "range": [
+            28,
+            28
+        ]
+    },
+    {
+        "type": "LineBreak",
+        "value": "\n",
+        "range": [
+            33,
+            33
+        ]
+    },
+    {
+        "type": "Keyword",
+        "value": "for",
+        "range": [
+            34,
+            37
+        ]
+    },
+    {
+        "type": "Whitespace",
+        "value": " ",
+        "range": [
+            37,
+            38
+        ]
+    },
+    {
+        "type": "Punctuator",
+        "value": "(",
+        "range": [
+            38,
+            39
+        ]
+    },
+    {
+        "type": "Keyword",
+        "value": "const",
+        "range": [
+            39,
+            44
+        ]
+    },
+    {
+        "type": "Whitespace",
+        "value": " ",
+        "range": [
+            44,
+            45
+        ]
+    },
+    {
+        "type": "Identifier",
+        "value": "foo",
+        "range": [
+            45,
+            48
+        ]
+    },
+    {
+        "type": "Whitespace",
+        "value": " ",
+        "range": [
+            48,
+            49
+        ]
+    },
+    {
+        "type": "Keyword",
+        "value": "in",
+        "range": [
+            49,
+            51
+        ]
+    },
+    {
+        "type": "Whitespace",
+        "value": " ",
+        "range": [
+            51,
+            52
+        ]
+    },
+    {
+        "type": "Identifier",
+        "value": "bar",
+        "range": [
+            52,
+            55
+        ]
+    },
+    {
+        "type": "Punctuator",
+        "value": ")",
+        "range": [
+            55,
+            56
+        ]
+    },
+    {
+        "type": "LineBreak",
+        "value": "\n",
+        "range": [
+            56,
+            56
+        ]
+    },
+    {
+        "type": "Identifier",
+        "value": "baz",
+        "range": [
+            57,
+            60
+        ]
+    },
+    {
+        "type": "Punctuator",
+        "value": "(",
+        "range": [
+            60,
+            61
+        ]
+    },
+    {
+        "type": "Punctuator",
+        "value": ")",
+        "range": [
+            61,
+            62
+        ]
+    }
+]

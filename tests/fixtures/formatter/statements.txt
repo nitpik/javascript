@@ -1,0 +1,33 @@
+{
+    "maxLineLength": 80
+}
+---
+if (foo)
+bar()
+
+while(foo)
+        bar();
+
+for (const foo of bar)
+baz()
+    
+for (const foo in bar)
+baz()
+
+for (let i=0;i<10;i++)
+bar()
+---
+if (foo)
+    bar();
+
+while (foo)
+    bar();
+
+for (const foo of bar)
+    baz();
+    
+for (const foo in bar)
+    baz();
+
+for (let i = 0; i < 10; i++)
+    bar();
