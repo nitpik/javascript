@@ -514,28 +514,28 @@ export class TokenList extends OrderedSet {
 
     /**
      * Finds the closest previous token that represents an indent.
-     * @param {Token} part The part to start searching from. 
+     * @param {Token} token The part to start searching from. 
      * @returns {Token} The token if found or `undefined` if not.
      */
-    findPreviousIndent(part) {
-        let previous = this.previous(part);
-        while (previous && !this.isIndent(previous)) {
-            previous = this.previous(previous);
+    findPreviousIndent(token) {
+        let previousToken = this.previous(token);
+        while (previousToken && !this.isIndent(previousToken)) {
+            previousToken = this.previous(previousToken);
         }
-        return previous;
+        return previousToken;
     }
 
     /**
      * Finds the closest previous token that represents a line break.
-     * @param {Token} part The part to start searching from. 
+     * @param {Token} token The part to start searching from. 
      * @returns {Token} The token if found or `undefined` if not.
      */
-    findPreviousLineBreak(part) {
-        let previous = this.previous(part);
-        while (previous && !this.isLineBreak(previous)) {
-            previous = this.previous(previous);
+    findPreviousLineBreak(token) {
+        let previousToken = this.previous(token);
+        while (previousToken && !this.isLineBreak(previousToken)) {
+            previousToken = this.previous(previousToken);
         }
-        return previous;
+        return previousToken;
     }
 
     /**

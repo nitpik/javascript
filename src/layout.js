@@ -301,11 +301,20 @@ export class Layout {
     }
 
     getIndent(tokenOrNode) {
-        const startToken = this.firstToken(tokenOrNode);
-        let token = this.tokenList.previous(startToken);
+        const firstToken = this.firstToken(tokenOrNode);
+        let currentToken = this.tokenList.previous(firstToken);
+        
+        /*
+         * If there is no previous token, that means this is the first syntax
+         * on the first line of the input. Technically, this is a level zero
+         * indent, so return an object.
+         */
+        if (!currentToken) {
+            return {};
+        }
 
         /*
-         * For this loop, we want to see if this node own an indent. That means
+         * For this loop, we want to see if this node owns an indent. That means
          * the start token of the node is the first indented token on the line.
          * This is important because it's possible to indent a node that
          * doesn't have an indent immediately before it (in which case, the
@@ -314,24 +323,95 @@ export class Layout {
          * This loop also skips over comments that are in between the indent
          * and the first token.
          */
-        while (token) {
-            if (this.tokenList.isIndent(token)) {
-                return { token };
+        while (currentToken) {
+            if (this.tokenList.isIndent(currentToken)) {
+                return { token: currentToken };
             }
 
             // first on line but no indent
-            if (this.tokenList.isLineBreak(token)) {
+            if (this.tokenList.isLineBreak(currentToken)) {
                 return {};
             }
 
-            if (!this.tokenList.isComment(token)) {
+            if (!this.tokenList.isComment(currentToken)) {
                 break;
             }
 
-            token = this.tokenList.previous(token);
+            currentToken = this.tokenList.previous(currentToken);
         }
 
         return undefined;
+    }
+
+    /**
+     * Determines the indentation level of the line on which the code starts.
+     * @param {Token|Node} tokenOrNode The token or node to inspect.
+     * @returns {int} The zero-based indentation level of the code. 
+     */
+    getIndentLevel(tokenOrNode) {
+        const indent = this.getIndent(tokenOrNode);
+        if (indent && indent.token) {
+            return indent.token.value.length / this.options.indent.length;
+        }
+
+        return 0;
+    }
+
+    /**
+     * Ensures the given token or node is indented to the specified level. This
+     * has an effect if the token or node is the first syntax on the line.
+     * @param {Node} tokenOrNode The token or node to indent.
+     * @param {int} level The number of levels to indent. 
+     * @returns {boolean} True if the indent was performed, false if not. 
+     */
+    indentLevel(tokenOrNode, level) {
+
+        if (typeof level !== "number" || level < 0) {
+            throw new TypeError("Second argument must be a number >= 0.");
+        }
+
+        const indent = this.getIndent(tokenOrNode);
+        
+        /*
+         * If the token or node is not the first syntax on a line then we
+         * should not indent.
+         */
+        if (!indent) {
+            return false;
+        }
+
+
+        let indentToken = indent.token;
+        const indentText = this.options.indent.repeat(level);
+        const { firstToken, lastToken } = this.boundaryTokens(tokenOrNode);
+
+        // if there is no indent token, create one
+        if (!indentToken) {
+            indentToken = {
+                type: "Whitespace",
+                value: ""
+            };
+
+            const lineBreak = this.tokenList.findPreviousLineBreak(firstToken);
+            if (lineBreak) {
+                this.tokenList.insertAfter(indentToken, lineBreak);
+            } else {
+                this.tokenList.insertBefore(indentToken, firstToken);
+            }
+        }
+
+        indentToken.value = indentText;
+
+        // find remaining indents in this node and update as well
+        let token = firstToken;
+        while (token !== lastToken) {
+            if (this.tokenList.isIndent(token)) {
+                token.value = indentText;
+            }
+            token = this.tokenList.next(token);
+        }
+
+        return true;
     }
 
     /**

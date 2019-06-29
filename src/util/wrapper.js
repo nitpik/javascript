@@ -47,17 +47,19 @@ const wrappers = {
             return;
         }
 
+        const indentLevel = layout.getIndentLevel(node);
         const dot = layout.findPrevious(".", node.property);
         
         layout.lineBreakBefore(dot);
-        layout.indent(dot);
+        layout.indentLevel(dot, indentLevel + 1);
     },
-
+    
     TemplateLiteral(node, layout) {
+        const indentLevel = layout.getIndentLevel(node);
         node.expressions.forEach(child => {
             layout.lineBreakBefore(child);
             layout.lineBreakAfter(child);
-            layout.indent(child);
+            layout.indentLevel(child, indentLevel + 1);
         });
     }
     

@@ -78,6 +78,58 @@ describe("Layout", () => {
         });
     });
 
+    describe("getIndentLevel()", () => {
+
+        it("should return the correct indent level when the line has no indent", () => {
+            const text = "a.b();";
+            const ast = parse(text);
+            const layout = new Layout({ ast, text });
+            const level = layout.getIndentLevel(ast.body[0]);
+            expect(level).to.equal(0);
+        });
+
+        it("should return the correct indent level when the indent is one level", () => {
+            const text = "{\n    foo();\n}";
+            const ast = parse(text);
+            const layout = new Layout({ ast, text });
+            const level = layout.getIndentLevel(ast.body[0].body[0]);
+            expect(level).to.equal(1);
+        });
+
+        it("should return the correct indent level when the indent is two levels", () => {
+            const text = "{\n    {\n        foo();\n    }\n}";
+            const ast = parse(text);
+            const layout = new Layout({ ast, text });
+            const level = layout.getIndentLevel(ast.body[0].body[0].body[0]);
+            expect(level).to.equal(2);
+        });
+
+    });
+
+    describe("indentLevel()", () => {
+
+        it("should indent one level when the code has no indent", () => {
+            const text = "a.b();";
+            const ast = parse(text);
+            const layout = new Layout({ ast, text });
+
+            expect(layout.indentLevel(ast.body[0], 1)).to.equal(true);
+            const level = layout.getIndentLevel(ast.body[0]);
+            expect(level).to.equal(1);
+        });
+
+        it("should maintain the indent when passed the same indent level", () => {
+            const text = "{\n    foo();\n}";
+            const ast = parse(text);
+            const layout = new Layout({ ast, text });
+
+            expect(layout.indentLevel(ast.body[0].body[0], 1)).to.equal(true);
+            const level = layout.getIndentLevel(ast.body[0].body[0]);
+            expect(level).to.equal(1);
+        });
+
+    });
+
     describe("getLineLength()", () => {
 
         it("should return the correct line length when the line has no indent", () => {

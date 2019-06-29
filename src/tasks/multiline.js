@@ -28,10 +28,11 @@ export default function(context) {
         CallExpression(node, parent) {
 
             // covers chained member expressions like `a.b().c()`
-            if (isMemberExpression(parent) && layout.isMultiLine(parent)) {
-                if (isMemberExpression(node.callee)) {
-                    // layout.wrap(node.callee);
-                }
+            if (
+                isMemberExpression(parent) && layout.isMultiLine(parent) &&
+                isMemberExpression(node.callee)
+            ) {
+                layout.wrap(node.callee);
             }
         },
 
@@ -43,11 +44,10 @@ export default function(context) {
 
         MemberExpression(node, parent) {
 
-
+            // covers chained member calls like `a.b.c`
             if (
                 layout.isMultiLine(node) || layout.isLineTooLong(node) ||
-                (isMemberExpression(parent) && layout.isMultiLine(parent)) ||
-                isCallExpression(parent)
+                (isMemberExpression(parent) && layout.isMultiLine(parent))
             ) {
                 layout.wrap(node);
             }
