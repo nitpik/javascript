@@ -63,6 +63,16 @@ describe("Layout", () => {
             expect(layout.toString()).to.equal(expected);
 
         });
+
+        it("should unwrap an object literal", () => {
+            const text = "const zz = {\n    \n  };";
+            const expected = "const zz = {};";
+            const ast = parse(text);
+            const layout = new Layout({ ast, text }, { collapseWhitespace: false });
+            layout.noWrap(ast.body[0].declarations[0].init);
+            expect(layout.toString()).to.equal(expected);
+
+        });
     });
 
     describe("wrap()", () => {

@@ -206,7 +206,7 @@ export class Layout {
                 }
             }
 
-            // automatically remove empty statements
+            // automatically remove unneeded empty statements
             if (node.type === "EmptyStatement") {
                 if (Array.isArray(parent.body)) {
                     parent.body = parent.body.filter(child => child !== node);
@@ -226,6 +226,7 @@ export class Layout {
         tasks.addTask(spacesTask);
         tasks.addTask(indentsTask);
         tasks.addTask(multilineTask);
+        // tasks.addTask(spacesTask);
         tasks.visit(sourceCode.ast, { layout: this });
     }
 
@@ -380,7 +381,6 @@ export class Layout {
             return false;
         }
 
-
         let indentToken = indent.token;
         const indentText = this.options.indent.repeat(level);
         const { firstToken, lastToken } = this.boundaryTokens(tokenOrNode);
@@ -406,7 +406,8 @@ export class Layout {
         let token = firstToken;
         while (token !== lastToken) {
             if (this.tokenList.isIndent(token)) {
-                token.value = indentText;
+                // make sure to keep relative indents correct
+                token.value = indentText + token.value.slice(indentText.length);
             }
             token = this.tokenList.next(token);
         }

@@ -1,4 +1,5 @@
 {
+    "maxLineLength": 80,
     "maxEmptyLines": 2,
     "trailingCommas": true
 }
@@ -38,6 +39,8 @@ const zz = {
 const zzz = {
 // hi
 }
+
+const abc = { name: "Nicholas", sport: "basketball", found:true, lost:false, count:123}
 ---
 module.exports = {
     colors: ["red", "green", "blue"],
@@ -69,4 +72,12 @@ const zz = {};
 
 const zzz = {
     // hi
+};
+
+const abc = {
+    name: "Nicholas",
+    sport: "basketball",
+    found: true,
+    lost: false,
+    count: 123,
 };

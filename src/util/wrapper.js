@@ -29,7 +29,38 @@ function unwrapObjectOrArrayLiteral(node, layout, tokenList) {
     }
 }
 
+function wrapObjectOrArrayLiteral(node, layout) { console.dir(node);
+    const children = node.type === "ArrayExpression" ? "elements" : "properties";
+    const { firstToken, lastToken } = layout.boundaryTokens(node);
+    const indentLevel = layout.getIndentLevel(node) + 1;
+
+    layout.lineBreakAfter(firstToken);
+    layout.lineBreakBefore(lastToken);
+
+    if (node[children].length) {
+        node[children].forEach(child => {
+            layout.indentLevel(child, indentLevel);
+
+            const lastToken = layout.lastToken(child);
+            const maybeComma = layout.nextToken(lastToken);
+
+            if (maybeComma.value === ",") {
+                layout.lineBreakAfter(maybeComma);
+            }
+        });
+
+        if (layout.options.trailingCommas) {
+            layout.commaAfter(node[children][node[children].length - 1]);
+        } else {
+            layout.noCommaAfter(node[children][node[children].length - 1]);
+        }
+    }
+}
+
+
 const wrappers = {
+    ArrayExpression: wrapObjectOrArrayLiteral,
+
     ConditionalExpression(node, layout) {
         const questionMark = layout.findPrevious("?", node.consequent);
         const colon = layout.findNext(":", node.consequent);
@@ -53,13 +84,15 @@ const wrappers = {
         layout.lineBreakBefore(dot);
         layout.indentLevel(dot, indentLevel + 1);
     },
+
+    ObjectExpression: wrapObjectOrArrayLiteral,
     
     TemplateLiteral(node, layout) {
-        const indentLevel = layout.getIndentLevel(node);
+        const indentLevel = layout.getIndentLevel(node) + 1;
         node.expressions.forEach(child => {
             layout.lineBreakBefore(child);
             layout.lineBreakAfter(child);
-            layout.indentLevel(child, indentLevel + 1);
+            layout.indentLevel(child, indentLevel);
         });
     }
     
@@ -68,6 +101,7 @@ const wrappers = {
 const unwrappers = {
     ArrayExpression: unwrapObjectOrArrayLiteral,
     ObjectExpression: unwrapObjectOrArrayLiteral,
+    
     ConditionalExpression(node, layout) {
         const questionMark = layout.findPrevious("?", node.consequent);
         const colon = layout.findNext(":", node.consequent);

@@ -1,4 +1,5 @@
 {
+    "maxLineLength": 80,
     "trailingCommas": true
 }
 ---
@@ -28,6 +29,8 @@ const evenMoreNumbers =   [
 4,
     5
 ];
+
+const someReallyLongArray = [ "cody", true, "blue", 12345, "fun", 0.5, "whatever"]
 ---
 const colors = ["red", "green", "blue"];
 
@@ -52,4 +55,14 @@ const evenMoreNumbers = [
     3,
     4,
     5,
+];
+
+const someReallyLongArray = [
+    "cody",
+    true,
+    "blue",
+    12345,
+    "fun",
+    0.5,
+    "whatever",
 ];

@@ -21,6 +21,18 @@ export default function(context) {
     const layout = context.layout;
     
     return {
+        ArrayExpression(node) {
+            const isMultiLine = layout.isMultiLine(node);
+            if (node.elements.length) {
+                if (layout.isLineTooLong(node) || isMultiLine) {
+                    layout.wrap(node);
+                } else if (!isMultiLine) {
+                    layout.noWrap(node);
+                }
+            } else {
+                layout.noWrap(node);
+            }
+        },
         
         CallExpression(node, parent) {
 
@@ -56,41 +68,16 @@ export default function(context) {
             }
         },
 
-        ArrayExpression(node) {
-            if (layout.isMultiLine(node)) {
-
-                if (node.elements.length) {
-                    const lastElementToken = layout.lastToken(node.elements[node.elements.length - 1]);
-                    const closeBracket = layout.lastToken(node);
-
-                    if (!layout.isSameLine(lastElementToken, closeBracket)) {
-                        if (layout.options.trailingCommas) {
-                            layout.commaAfter(lastElementToken);
-                        }
-                    }
-                } else {
-                    layout.noWrap(node);
-                }
-                
-            }
-        },
-
         ObjectExpression(node) {
-            if (layout.isMultiLine(node)) {
-
-                if (node.properties.length) {
-                    const lastElementToken = layout.lastToken(node.properties[node.properties.length - 1]);
-                    const closeBracket = layout.lastToken(node);
-
-                    if (!layout.isSameLine(lastElementToken, closeBracket)) {
-                        if (layout.options.trailingCommas) {
-                            layout.commaAfter(lastElementToken);
-                        }
-                    }
-                } else {
+            const isMultiLine = layout.isMultiLine(node);
+            if (node.properties.length) {
+                if (layout.isLineTooLong(node) || isMultiLine) {
+                    layout.wrap(node);
+                } else if (!isMultiLine) {
                     layout.noWrap(node);
                 }
-
+            } else {
+                layout.noWrap(node);
             }
         }
 

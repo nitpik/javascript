@@ -3,7 +3,27 @@
 function foo() {
     // todo
 };
+
+if (foo);
+
+while (foo);
+
+for (a;b;c);
+
+for (const a of b);
+
+for (const c in d);
 ---
 function foo() {
     // todo
 }
+
+if (foo);
+
+while (foo);
+
+for (a; b; c);
+
+for (const a of b);
+
+for (const c in d);
