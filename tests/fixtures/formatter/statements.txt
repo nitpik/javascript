@@ -25,7 +25,7 @@ while (foo)
 
 for (const foo of bar)
     baz();
-    
+
 for (const foo in bar)
     baz();
 

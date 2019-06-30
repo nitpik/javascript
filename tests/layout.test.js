@@ -14,9 +14,8 @@ import chai from "chai";
 const expect = chai.expect;
 
 //-----------------------------------------------------------------------------
-// Data
+// Helpers
 //-----------------------------------------------------------------------------
-
 
 function parse(text) {
     return espree.parse(text, { range: true, tokens: true, comment: true, ecmaVersion: 2019 });
