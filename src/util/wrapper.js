@@ -98,6 +98,24 @@ const wrappers = new Map(Object.entries({
             layout.lineBreakAfter(child);
             layout.indentLevel(child, indentLevel);
         });
+    },
+
+    VariableDeclaration(node, layout) {
+        const indentLevel = layout.getIndentLevel(node) + 1;
+        
+        if (node.declarations.length > 1) {
+            node.declarations.forEach((declarator, i) => {
+                const lastToken = layout.lastToken(declarator);
+                const commaToken = layout.nextToken(lastToken);
+                if (commaToken.value === ",") {
+                    layout.lineBreakAfter(commaToken);
+                }
+
+                if (i > 0) {
+                    layout.indentLevel(declarator, indentLevel);
+                }
+            });
+        }
     }
     
 }));

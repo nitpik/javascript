@@ -87,6 +87,12 @@ export default function(context) {
 
         ObjectPattern(node) {
             this.ObjectExpression(node);
+        },
+
+        VariableDeclaration(node) {
+            if (layout.isLineTooLong(node) || layout.isMultiLine(node)) {
+                layout.wrap(node);
+            }
         }
 
     };

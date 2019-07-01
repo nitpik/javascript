@@ -1,0 +1,13 @@
+{
+    "maxLineLength": 80
+}
+---
+var foo,bar,baz;
+
+let someReallyLongVariableName, anotherReallyLongVariableName, somethingElseReallyLong;
+---
+var foo, bar, baz;
+
+let someReallyLongVariableName,
+    anotherReallyLongVariableName,
+    somethingElseReallyLong;
