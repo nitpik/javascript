@@ -31,6 +31,10 @@ const evenMoreNumbers =   [
 ];
 
 const someReallyLongArray = [ "cody", true, "blue", 12345, "fun", 0.5, "whatever"]
+
+if (foo) {
+const someReallyLongArray = [ "dustin", true, "blue", 12345, "fun", 0.5, "whatever"]
+}
 ---
 const colors = ["red", "green", "blue"];
 
@@ -66,3 +70,15 @@ const someReallyLongArray = [
     0.5,
     "whatever",
 ];
+
+if (foo) {
+    const someReallyLongArray = [
+        "dustin",
+        true,
+        "blue",
+        12345,
+        "fun",
+        0.5,
+        "whatever",
+    ];
+}

@@ -29,17 +29,19 @@ function unwrapObjectOrArrayLiteral(node, layout, tokenList) {
     }
 }
 
-function wrapObjectOrArrayLiteral(node, layout) { console.dir(node);
+function wrapObjectOrArrayLiteral(node, layout) {
     const children = node.type === "ArrayExpression" ? "elements" : "properties";
     const { firstToken, lastToken } = layout.boundaryTokens(node);
-    const indentLevel = layout.getIndentLevel(node) + 1;
-
+    const originalIndentLevel = layout.getIndentLevel(node);
+    const newIndentLevel = originalIndentLevel + 1;
+    
     layout.lineBreakAfter(firstToken);
     layout.lineBreakBefore(lastToken);
+    layout.indentLevel(lastToken, originalIndentLevel);
 
     if (node[children].length) {
         node[children].forEach(child => {
-            layout.indentLevel(child, indentLevel);
+            layout.indentLevel(child, newIndentLevel);
 
             const lastToken = layout.lastToken(child);
             const maybeComma = layout.nextToken(lastToken);

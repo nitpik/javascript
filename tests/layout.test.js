@@ -85,6 +85,16 @@ describe("Layout", () => {
             expect(layout.toString()).to.equal(expected);
 
         });
+
+        it("should wrap an array literal when inside an if statement", () => {
+            const text = "if (foo) {\nconst bar = [1,2];\n}";
+            const expected = "if (foo) {\n    const bar = [\n        1,\n        2,\n    ];\n}";
+            const ast = parse(text);
+            const layout = new Layout({ ast, text });
+            layout.wrap(ast.body[0].consequent.body[0].declarations[0].init);
+            expect(layout.toString()).to.equal(expected);
+
+        });
     });
 
     describe("getIndentLevel()", () => {
@@ -156,6 +166,14 @@ describe("Layout", () => {
             const layout = new Layout({ ast, text });
             const length = layout.getLineLength(ast.body[0].consequent);
             expect(length).to.equal(10);
+        });
+
+        it("should return the correct line length when is inside an if condition", () => {
+            const text = "if (foo){\nconst foo = [1, 2, 3, 4, 5];\n}";
+            const ast = parse(text);
+            const layout = new Layout({ ast, text });
+            const length = layout.getLineLength(ast.body[0].consequent.body[0]);
+            expect(length).to.equal(32);
         });
 
         it("should return the correct line length when the line has a tab indent", () => {

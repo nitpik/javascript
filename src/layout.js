@@ -274,23 +274,23 @@ export class Layout {
      */
     getLineLength(tokenOrNode) {
         const token = this.firstToken(tokenOrNode);
-        let current = this.tokenList.findFirstTokenOrCommentOnLine(token);
-        const previous = this.tokenList.previous(current);
+        let currentToken = this.tokenList.findFirstTokenOrCommentOnLine(token);
+        const previousToken = this.tokenList.previous(currentToken);
         let characterCount = 0;
         
         // first count the indent, if any
-        if (this.tokenList.isIndent(previous)) {
-            if (previous.value.includes("\t")) {
-                characterCount += previous.value.length * this.options.tabWidth;
+        if (this.tokenList.isIndent(previousToken)) {
+            if (previousToken.value.includes("\t")) {
+                characterCount += previousToken.value.length * this.options.tabWidth;
             } else {
-                characterCount += previous.value;
+                characterCount += previousToken.value.length;
             }
         }
 
         // then count the other tokens
-        while (current && !this.tokenList.isLineBreak(current)) {
-            characterCount += current.value.length;
-            current = this.tokenList.next(current);
+        while (currentToken && !this.tokenList.isLineBreak(currentToken)) {
+            characterCount += currentToken.value.length;
+            currentToken = this.tokenList.next(currentToken);
         }
 
         return characterCount;
@@ -350,9 +350,12 @@ export class Layout {
      * @returns {int} The zero-based indentation level of the code. 
      */
     getIndentLevel(tokenOrNode) {
-        const indent = this.getIndent(tokenOrNode);
-        if (indent && indent.token) {
-            return indent.token.value.length / this.options.indent.length;
+        const firstToken = this.firstToken(tokenOrNode);
+        const lineBreak = this.tokenList.findPreviousLineBreak(firstToken);
+        const maybeIndent = lineBreak ? this.tokenList.next(lineBreak) : this.tokenList.first();
+
+        if (this.tokenList.isWhitespace(maybeIndent)) {
+            return maybeIndent.value.length / this.options.indent.length;
         }
 
         return 0;

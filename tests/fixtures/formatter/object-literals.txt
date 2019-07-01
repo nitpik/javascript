@@ -41,6 +41,10 @@ const zzz = {
 }
 
 const abc = { name: "Nicholas", sport: "basketball", found:true, lost:false, count:123}
+
+if (foo) {
+const abc = { name: "Greg", sport: "basketball", found:true, lost:false, count:123}
+}
 ---
 module.exports = {
     colors: ["red", "green", "blue"],
@@ -81,3 +85,13 @@ const abc = {
     lost: false,
     count: 123,
 };
+
+if (foo) {
+    const abc = {
+        name: "Greg",
+        sport: "basketball",
+        found: true,
+        lost: false,
+        count: 123,
+    };
+}
