@@ -8,7 +8,7 @@
 //-----------------------------------------------------------------------------
 
 function unwrapObjectOrArrayLiteral(node, layout, tokenList) {
-    const children = node.type === "ArrayExpression" ? "elements" : "properties";
+    const children = node.type.startsWith("Array") ? "elements" : "properties";
     const { firstToken, lastToken } = layout.boundaryTokens(node);
     let token = firstToken;
 
@@ -30,7 +30,7 @@ function unwrapObjectOrArrayLiteral(node, layout, tokenList) {
 }
 
 function wrapObjectOrArrayLiteral(node, layout) {
-    const children = node.type === "ArrayExpression" ? "elements" : "properties";
+    const children = node.type.startsWith("Array") ? "elements" : "properties";
     const { firstToken, lastToken } = layout.boundaryTokens(node);
     const originalIndentLevel = layout.getIndentLevel(node);
     const newIndentLevel = originalIndentLevel + 1;
@@ -60,8 +60,9 @@ function wrapObjectOrArrayLiteral(node, layout) {
 }
 
 
-const wrappers = {
+const wrappers = new Map(Object.entries({
     ArrayExpression: wrapObjectOrArrayLiteral,
+    ArrayPattern: wrapObjectOrArrayLiteral,
 
     ConditionalExpression(node, layout) {
         const questionMark = layout.findPrevious("?", node.consequent);
@@ -88,6 +89,7 @@ const wrappers = {
     },
 
     ObjectExpression: wrapObjectOrArrayLiteral,
+    ObjectPattern: wrapObjectOrArrayLiteral,
     
     TemplateLiteral(node, layout) {
         const indentLevel = layout.getIndentLevel(node) + 1;
@@ -98,11 +100,13 @@ const wrappers = {
         });
     }
     
-};
+}));
 
-const unwrappers = {
+const unwrappers = new Map(Object.entries({
     ArrayExpression: unwrapObjectOrArrayLiteral,
     ObjectExpression: unwrapObjectOrArrayLiteral,
+    ArrayPattern: unwrapObjectOrArrayLiteral,
+    ObjectPattern: unwrapObjectOrArrayLiteral,
     
     ConditionalExpression(node, layout) {
         const questionMark = layout.findPrevious("?", node.consequent);
@@ -121,7 +125,7 @@ const unwrappers = {
         });
     }
 
-};
+}));
 
 //-----------------------------------------------------------------------------
 // Exports
@@ -134,10 +138,10 @@ export class Wrapper {
     }
 
     wrap(node) {
-        return wrappers[node.type](node, this.layout, this.tokenList);
+        return wrappers.get(node.type)(node, this.layout, this.tokenList);
     }
 
     noWrap(node) {
-        return unwrappers[node.type](node, this.layout, this.tokenList);
+        return unwrappers.get(node.type)(node, this.layout, this.tokenList);
     }
 }

@@ -1,0 +1,38 @@
+{
+    "maxLineLength": 80,
+    "trailingCommas": true
+}
+---
+let   [foo,bar]= baz;
+
+const [ someReallyLongVariableName, anotherReallyLongVariableName, ...somethingElse ] = foo;
+
+const {firstToken , lastToken}=foo;
+
+const { firstToken: firstLongVariableName, lastToken:lastLongVariableName } = foo;
+
+if (foo) {
+let { firstToken: firstLongVariableName, lastToken:lastLongVariableName } = foo;
+}
+---
+let [foo, bar] = baz;
+
+const [
+    someReallyLongVariableName,
+    anotherReallyLongVariableName,
+    ...somethingElse,
+] = foo;
+
+const { firstToken, lastToken } = foo;
+
+const {
+    firstToken: firstLongVariableName,
+    lastToken: lastLongVariableName,
+} = foo;
+
+if (foo) {
+    let {
+        firstToken: firstLongVariableName,
+        lastToken: lastLongVariableName,
+    } = foo;
+}

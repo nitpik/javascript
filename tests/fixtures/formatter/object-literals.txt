@@ -45,6 +45,8 @@ const abc = { name: "Nicholas", sport: "basketball", found:true, lost:false, cou
 if (foo) {
 const abc = { name: "Greg", sport: "basketball", found:true, lost:false, count:123}
 }
+
+let foom ={bar:1 ,baz :2};
 ---
 module.exports = {
     colors: ["red", "green", "blue"],
@@ -95,3 +97,5 @@ if (foo) {
         count: 123,
     };
 }
+
+let foom = { bar: 1, baz: 2 };

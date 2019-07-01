@@ -84,6 +84,10 @@ export default function(context) {
             }
         },
 
+        ArrayPattern(node) {
+            this.ArrayExpression(node);
+        },
+
         ArrowFunctionExpression(node) {
     
             let openParenToken, closeParenToken;
@@ -302,17 +306,15 @@ export default function(context) {
         ObjectExpression(node) {
 
             const { firstToken, lastToken } = layout.boundaryTokens(node);
-            layout.noSpaceAfter(firstToken);
+            layout.spaceAfter(firstToken);
 
-            // no spacing work for multiline
             if (!layout.isMultiLine(node)) {
 
-                layout.noSpaceBefore(lastToken);
-
+                
                 if (node.properties.length) {
-
+                    
                     node.properties.forEach((property, index) => {
-
+                        
                         if (index > 0) {
                             layout.spaceBefore(property);
                         }
@@ -320,6 +322,12 @@ export default function(context) {
                     });
                 }
             }
+            
+            layout.spaceBefore(lastToken);
+        },
+
+        ObjectPattern(node) {
+            this.ObjectExpression(node);
         },
 
         Property(node) {

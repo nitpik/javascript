@@ -33,6 +33,10 @@ export default function(context) {
                 layout.noWrap(node);
             }
         },
+
+        ArrayPattern(node) {
+            this.ArrayExpression(node);
+        },
         
         CallExpression(node, parent) {
 
@@ -79,6 +83,10 @@ export default function(context) {
             } else {
                 layout.noWrap(node);
             }
+        },
+
+        ObjectPattern(node) {
+            this.ObjectExpression(node);
         }
 
     };

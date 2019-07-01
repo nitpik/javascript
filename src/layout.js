@@ -38,7 +38,7 @@ const DEFAULT_OPTIONS = {
     semicolons: true,
     quotes: "double",
     collapseWhitespace: true,
-    trailingCommas: true,
+    trailingCommas: false,
     maxEmptyLines: 1,
     maxLineLength: Infinity,
     trimTrailingWhitespace: true
@@ -614,6 +614,12 @@ export class Layout {
         }
     }
     
+    /**
+     * Ensures that there is a comma after a given token or node.
+     * @param {Token|Node} tokenOrNode The token or node to look for a comma
+     *      after.
+     * @returns {boolean} True if a comma was added, false if not.
+     */
     commaAfter(partOrNode) {
         let part = this.lastToken(partOrNode);
        
@@ -630,6 +636,29 @@ export class Layout {
 
                 return true;
             }
+        }
+
+        /*
+         * If we make it to here, then we're at the end of the file and a comma
+         * should not be inserted because it's likely not valid syntax.
+         */
+        return false;
+    }
+
+    /**
+     * Ensures that there is no comma after a given token or node.
+     * @param {Token|Node} tokenOrNode The token or node to look for a comma
+     *      after.
+     * @returns {boolean} True if a comma was deleted, false if not.
+     */
+    noCommaAfter(tokenOrNode) {
+        let firstToken = this.lastToken(tokenOrNode);
+       
+        // check to see what the next token is
+        const next = this.nextToken(firstToken);
+        if (next && next.value === ",") {
+            this.tokenList.delete(next);
+            return true;
         }
 
         /*

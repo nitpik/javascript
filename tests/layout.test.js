@@ -88,7 +88,7 @@ describe("Layout", () => {
 
         it("should wrap an array literal when inside an if statement", () => {
             const text = "if (foo) {\nconst bar = [1,2];\n}";
-            const expected = "if (foo) {\n    const bar = [\n        1,\n        2,\n    ];\n}";
+            const expected = "if (foo) {\n    const bar = [\n        1,\n        2\n    ];\n}";
             const ast = parse(text);
             const layout = new Layout({ ast, text });
             layout.wrap(ast.body[0].consequent.body[0].declarations[0].init);
