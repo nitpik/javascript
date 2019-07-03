@@ -59,6 +59,24 @@ function wrapObjectOrArrayLiteral(node, layout) {
     }
 }
 
+const extraIndentForVariable = new Map(Object.entries({
+    FunctionExpression(node, layout, tokenList, indentLevel) {
+        const { firstToken, lastToken } = layout.boundaryTokens(node.body);
+        const firstBodyToken = tokenList.nextTokenOrComment(firstToken);
+        const lastBodyToken = tokenList.previousTokenOrComment(lastToken);
+
+        layout.indentLevelBetween(firstBodyToken, lastBodyToken, indentLevel + 1);
+        layout.indentLevel(lastToken, indentLevel);
+    },
+    ObjectExpression(node, layout, tokenList, indentLevel) {
+        const { firstToken, lastToken } = layout.boundaryTokens(node);
+        const firstBodyToken = tokenList.nextTokenOrComment(firstToken);
+        const lastBodyToken = tokenList.previousTokenOrComment(lastToken);
+        
+        layout.indentLevelBetween(firstBodyToken, lastBodyToken, indentLevel + 1);
+        layout.indentLevel(lastToken, indentLevel);
+    }
+}));
 
 const wrappers = new Map(Object.entries({
     ArrayExpression: wrapObjectOrArrayLiteral,
@@ -100,7 +118,7 @@ const wrappers = new Map(Object.entries({
         });
     },
 
-    VariableDeclaration(node, layout) {
+    VariableDeclaration(node, layout, tokenList) {
         const indentLevel = layout.getIndentLevel(node) + 1;
         
         if (node.declarations.length > 1) {
@@ -111,9 +129,18 @@ const wrappers = new Map(Object.entries({
                     layout.lineBreakAfter(commaToken);
                 }
 
+                const needsExtraIndent = declarator.init &&
+                    extraIndentForVariable.has(declarator.init.type) &&
+                    layout.isMultiLine(declarator.init);
+                    
                 if (i > 0) {
                     layout.indentLevel(declarator, indentLevel);
                 }
+                
+                if (needsExtraIndent) {
+                    extraIndentForVariable.get(declarator.init.type)(declarator.init, layout, tokenList, indentLevel);
+                }
+                
             });
         }
     }

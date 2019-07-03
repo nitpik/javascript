@@ -419,6 +419,62 @@ export class Layout {
     }
 
     /**
+     * Ensures all indents between the two tokens are set to the given level.
+     * @param {Token} firstToken The first token to indent.
+     * @param {Token} lastToken The last token to indent.
+     * @param {int} level The number of levels to indent. 
+     * @returns {boolean} True if the indent was performed, false if not. 
+     */
+    indentLevelBetween(firstToken, lastToken, level) {
+
+        if (typeof level !== "number" || level < 0) {
+            throw new TypeError("Third argument must be a number >= 0.");
+        }
+
+        const indent = this.getIndent(firstToken);
+
+        /*
+         * If the token or node is not the first syntax on a line then we
+         * should not indent.
+         */
+        if (!indent) {
+            return false;
+        }
+
+        let indentToken = indent.token;
+        const indentText = this.options.indent.repeat(level);
+
+        // if there is no indent token, create one
+        if (!indentToken) {
+            indentToken = {
+                type: "Whitespace",
+                value: ""
+            };
+
+            const lineBreak = this.tokenList.findPreviousLineBreak(firstToken);
+            if (lineBreak) {
+                this.tokenList.insertAfter(indentToken, lineBreak);
+            } else {
+                this.tokenList.insertBefore(indentToken, firstToken);
+            }
+        }
+
+        indentToken.value = indentText;
+
+        // find remaining indents in this node and update as well
+        let token = firstToken;
+        while (token !== lastToken) {
+            if (this.tokenList.isIndent(token)) {
+                // make sure to keep relative indents correct
+                token.value = indentText + token.value.slice(indentText.length);
+            }
+            token = this.tokenList.next(token);
+        }
+
+        return true;
+    }
+
+    /**
      * Indents the given node only if the node is the first syntax on the line.
      * @param {Node} tokenOrNode The token or node to indent.
      * @param {int} [levels=1] The number of levels to indent. If this value is

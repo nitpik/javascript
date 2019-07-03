@@ -50,10 +50,6 @@ try{
     // whatever
 }
 
-const x = function () {
-    bar();
-},y=5;
-
 throw   (foo);
 throw(bar);
 
@@ -122,10 +118,6 @@ try {
 } finally {
     // whatever
 }
-
-const x = function() {
-    bar();
-}, y = 5;
 
 throw (foo);
 throw (bar);

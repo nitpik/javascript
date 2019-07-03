@@ -5,9 +5,77 @@
 var foo,bar,baz;
 
 let someReallyLongVariableName, anotherReallyLongVariableName, somethingElseReallyLong;
+
+// functions
+
+const yy = function () {
+bar();
+};
+
+const x = function () {
+    // hello
+    bar();
+},y=5;
+
+const a = 5,
+b = function() {
+    bar();
+},
+c = 5;
+
+// object literals
+
+var person = {
+name:"Nicholas"
+}
+
+let task = {
+                    id: 1
+}, num=2;
+
+let count=  3,
+ task2 = {
+                    id: 1,
+                    completed: false
+};
 ---
 var foo, bar, baz;
 
 let someReallyLongVariableName,
     anotherReallyLongVariableName,
     somethingElseReallyLong;
+
+// functions
+
+const yy = function() {
+    bar();
+};
+
+const x = function() {
+        // hello
+        bar();
+    },
+    y = 5;
+
+const a = 5,
+    b = function() {
+        bar();
+    },
+    c = 5;
+
+// object literals
+
+var person = {
+    name: "Nicholas"
+};
+
+let task = {
+        id: 1
+    }, 
+    num = 2;
+
+let count = 3,
+    task2 = {
+        id: 1,
+        completed: false
+    };
