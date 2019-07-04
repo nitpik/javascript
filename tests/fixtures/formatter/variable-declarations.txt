@@ -23,6 +23,21 @@ b = function() {
 },
 c = 5;
 
+const yya =  ()=> {
+bar();
+};
+
+const xa =  () =>{
+    // hello
+    bar();
+},ya=5;
+
+const aa = 5,
+ba = () =>{
+    bar();
+},
+ca = 5;
+
 // object literals
 
 var person = {
@@ -79,6 +94,22 @@ const a = 5,
         bar();
     },
     c = 5;
+
+const yya = () => {
+    bar();
+};
+
+const xa = () => {
+        // hello
+        bar();
+    },
+    ya = 5;
+
+const aa = 5,
+    ba = () => {
+        bar();
+    },
+    ca = 5;
 
 // object literals
 

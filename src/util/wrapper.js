@@ -47,12 +47,12 @@ function wrapObjectOrArrayLiteral(node, {layout, nodeParents, tokenList }) {
     const firstBodyToken = tokenList.nextTokenOrComment(firstToken);
     const lastBodyToken = tokenList.previousTokenOrComment(lastToken);
     let originalIndentLevel = layout.getIndentLevel(node);
-    let newIndentLevel = originalIndentLevel + 1;
     
     if (shouldIncreaseIndentForVariableDeclaration(node, nodeParents)) {
         originalIndentLevel++;
-        newIndentLevel++;
     }
+
+    const newIndentLevel = originalIndentLevel + 1;
 
     layout.lineBreakAfter(firstToken);
     layout.lineBreakBefore(lastToken);
@@ -80,9 +80,29 @@ function wrapObjectOrArrayLiteral(node, {layout, nodeParents, tokenList }) {
 
 }
 
+function wrapFunctionExpression(node, { layout, nodeParents, tokenList }) {
+    const { firstToken, lastToken } = layout.boundaryTokens(node.body);
+    const firstBodyToken = tokenList.nextTokenOrComment(firstToken);
+    const lastBodyToken = tokenList.previousTokenOrComment(lastToken);
+    let originalIndentLevel = layout.getIndentLevel(node);
+
+    if (shouldIncreaseIndentForVariableDeclaration(node, nodeParents)) {
+        originalIndentLevel++;
+    }
+
+    const newIndentLevel = originalIndentLevel + 1;
+
+    layout.lineBreakAfter(firstToken);
+    layout.lineBreakBefore(lastToken);
+    layout.indentLevel(lastToken, originalIndentLevel);
+    layout.indentLevelBetween(firstBodyToken, lastBodyToken, newIndentLevel);
+}
+
+
 const wrappers = new Map(Object.entries({
     ArrayExpression: wrapObjectOrArrayLiteral,
     ArrayPattern: wrapObjectOrArrayLiteral,
+    ArrowFunctionExpression: wrapFunctionExpression,
 
     ConditionalExpression(node, {layout}) {
         const questionMark = layout.findPrevious("?", node.consequent);
@@ -94,23 +114,7 @@ const wrappers = new Map(Object.entries({
         layout.indent(colon);
     },
 
-    FunctionExpression(node, { layout, nodeParents, tokenList }) {
-        const { firstToken, lastToken } = layout.boundaryTokens(node.body);
-        const firstBodyToken = tokenList.nextTokenOrComment(firstToken);
-        const lastBodyToken = tokenList.previousTokenOrComment(lastToken);
-        let originalIndentLevel = layout.getIndentLevel(node);
-        
-        if (shouldIncreaseIndentForVariableDeclaration(node, nodeParents)) {
-            originalIndentLevel++;
-        }
-
-        const newIndentLevel = originalIndentLevel + 1;
-
-        layout.lineBreakAfter(firstToken);
-        layout.lineBreakBefore(lastToken);
-        layout.indentLevel(lastToken, originalIndentLevel);
-        layout.indentLevelBetween(firstBodyToken, lastBodyToken, newIndentLevel);
-    },
+    FunctionExpression: wrapFunctionExpression,
 
     MemberExpression(node, {layout}) {
 

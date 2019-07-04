@@ -37,6 +37,10 @@ export default function(context) {
         ArrayPattern(node) {
             this.ArrayExpression(node);
         },
+
+        ArrowFunctionExpression(node, parent) {
+            this.FunctionExpression(node, parent);
+        },
         
         CallExpression(node, parent) {
 
