@@ -83,7 +83,6 @@ describe("Layout", () => {
             const layout = new Layout({ ast, text });
             layout.wrap(ast.body[0].expression);
             expect(layout.toString()).to.equal(expected);
-
         });
 
         it("should wrap an array literal when inside an if statement", () => {
@@ -92,6 +91,45 @@ describe("Layout", () => {
             const ast = parse(text);
             const layout = new Layout({ ast, text });
             layout.wrap(ast.body[0].consequent.body[0].declarations[0].init);
+            expect(layout.toString()).to.equal(expected);
+
+        });
+
+        it("should wrap a variable declaration when there's an object literal first", () => {
+            const text = "const x = {\nfoo:1\n},a=1;";
+            const expected = "const x = {\n        foo: 1\n    },\n    a = 1;";
+            const ast = parse(text);
+            const layout = new Layout({ ast, text });
+            layout.wrap(ast.body[0]);
+            expect(layout.toString()).to.equal(expected);
+
+        });
+        
+        it("should wrap a variable declaration when there's an object literal last", () => {
+            const text = "const a=1,x={\nfoo:1\n};";
+            const expected = "const a = 1,\n    x = {\n        foo: 1\n    };";
+            const ast = parse(text);
+            const layout = new Layout({ ast, text });
+            layout.wrap(ast.body[0]);
+            expect(layout.toString()).to.equal(expected);
+            
+        });
+        
+        it("should wrap a variable declaration when there's a function first", () => {
+            const text = "const x = function(){\n return foo;\n},a=1;";
+            const expected = "const x = function() {\n        return foo;\n    },\n    a = 1;";
+            const ast = parse(text);
+            const layout = new Layout({ ast, text });
+            layout.wrap(ast.body[0]);
+            expect(layout.toString()).to.equal(expected);
+        });
+
+        it("should wrap a variable declaration when there's a function last", () => {
+            const text = "const a=1,x=function(){\nreturn foo;\n};";
+            const expected = "const a = 1,\n    x = function() {\n        return foo;\n    };";
+            const ast = parse(text);
+            const layout = new Layout({ ast, text });
+            layout.wrap(ast.body[0]);
             expect(layout.toString()).to.equal(expected);
 
         });

@@ -35,9 +35,26 @@ let task = {
 
 let count=  3,
  task2 = {
+// test
                     id: 1,
                     completed: false
 };
+
+// array literals
+
+let items = [
+"foo"
+];
+
+let items2 = [
+"foo"
+], item2Count=1;
+
+let items3Count=2,
+items3 = [
+    // hi
+"foo", "bar"
+];
 ---
 var foo, bar, baz;
 
@@ -71,11 +88,30 @@ var person = {
 
 let task = {
         id: 1
-    }, 
+    },
     num = 2;
 
 let count = 3,
     task2 = {
+        // test
         id: 1,
         completed: false
     };
+
+// array literals
+
+let items = [
+    "foo"
+];
+
+let items2 = [
+        "foo"
+    ],
+    item2Count = 1;
+
+let items3Count = 2,
+    items3 = [
+        // hi
+        "foo",
+        "bar"
+    ];

@@ -7,7 +7,19 @@
 // Helpers
 //-----------------------------------------------------------------------------
 
-function unwrapObjectOrArrayLiteral(node, layout, tokenList) {
+function shouldIncreaseIndentForVariableDeclaration(node, nodeParents) {
+    const parent = nodeParents.get(node);
+    if (parent.type === "VariableDeclarator" && parent.init === node) {
+        const grandParent = nodeParents.get(parent);
+
+        return grandParent.declarations.length > 1 &&
+            grandParent.declarations[0] === parent;
+    }
+
+    return false;
+}
+
+function unwrapObjectOrArrayLiteral(node, {layout, tokenList}) {
     const children = node.type.startsWith("Array") ? "elements" : "properties";
     const { firstToken, lastToken } = layout.boundaryTokens(node);
     let token = firstToken;
@@ -29,19 +41,25 @@ function unwrapObjectOrArrayLiteral(node, layout, tokenList) {
     }
 }
 
-function wrapObjectOrArrayLiteral(node, layout) {
+function wrapObjectOrArrayLiteral(node, {layout, nodeParents, tokenList }) {
     const children = node.type.startsWith("Array") ? "elements" : "properties";
     const { firstToken, lastToken } = layout.boundaryTokens(node);
-    const originalIndentLevel = layout.getIndentLevel(node);
-    const newIndentLevel = originalIndentLevel + 1;
+    const firstBodyToken = tokenList.nextTokenOrComment(firstToken);
+    const lastBodyToken = tokenList.previousTokenOrComment(lastToken);
+    let originalIndentLevel = layout.getIndentLevel(node);
+    let newIndentLevel = originalIndentLevel + 1;
     
+    if (shouldIncreaseIndentForVariableDeclaration(node, nodeParents)) {
+        originalIndentLevel++;
+        newIndentLevel++;
+    }
+
     layout.lineBreakAfter(firstToken);
     layout.lineBreakBefore(lastToken);
     layout.indentLevel(lastToken, originalIndentLevel);
 
     if (node[children].length) {
         node[children].forEach(child => {
-            layout.indentLevel(child, newIndentLevel);
 
             const lastToken = layout.lastToken(child);
             const maybeComma = layout.nextToken(lastToken);
@@ -57,32 +75,16 @@ function wrapObjectOrArrayLiteral(node, layout) {
             layout.noCommaAfter(node[children][node[children].length - 1]);
         }
     }
+
+    layout.indentLevelBetween(firstBodyToken, lastBodyToken, newIndentLevel);
+
 }
-
-const extraIndentForVariable = new Map(Object.entries({
-    FunctionExpression(node, layout, tokenList, indentLevel) {
-        const { firstToken, lastToken } = layout.boundaryTokens(node.body);
-        const firstBodyToken = tokenList.nextTokenOrComment(firstToken);
-        const lastBodyToken = tokenList.previousTokenOrComment(lastToken);
-
-        layout.indentLevelBetween(firstBodyToken, lastBodyToken, indentLevel + 1);
-        layout.indentLevel(lastToken, indentLevel);
-    },
-    ObjectExpression(node, layout, tokenList, indentLevel) {
-        const { firstToken, lastToken } = layout.boundaryTokens(node);
-        const firstBodyToken = tokenList.nextTokenOrComment(firstToken);
-        const lastBodyToken = tokenList.previousTokenOrComment(lastToken);
-        
-        layout.indentLevelBetween(firstBodyToken, lastBodyToken, indentLevel + 1);
-        layout.indentLevel(lastToken, indentLevel);
-    }
-}));
 
 const wrappers = new Map(Object.entries({
     ArrayExpression: wrapObjectOrArrayLiteral,
     ArrayPattern: wrapObjectOrArrayLiteral,
 
-    ConditionalExpression(node, layout) {
+    ConditionalExpression(node, {layout}) {
         const questionMark = layout.findPrevious("?", node.consequent);
         const colon = layout.findNext(":", node.consequent);
         
@@ -92,7 +94,25 @@ const wrappers = new Map(Object.entries({
         layout.indent(colon);
     },
 
-    MemberExpression(node, layout) {
+    FunctionExpression(node, { layout, nodeParents, tokenList }) {
+        const { firstToken, lastToken } = layout.boundaryTokens(node.body);
+        const firstBodyToken = tokenList.nextTokenOrComment(firstToken);
+        const lastBodyToken = tokenList.previousTokenOrComment(lastToken);
+        let originalIndentLevel = layout.getIndentLevel(node);
+        
+        if (shouldIncreaseIndentForVariableDeclaration(node, nodeParents)) {
+            originalIndentLevel++;
+        }
+
+        const newIndentLevel = originalIndentLevel + 1;
+
+        layout.lineBreakAfter(firstToken);
+        layout.lineBreakBefore(lastToken);
+        layout.indentLevel(lastToken, originalIndentLevel);
+        layout.indentLevelBetween(firstBodyToken, lastBodyToken, newIndentLevel);
+    },
+
+    MemberExpression(node, {layout}) {
 
         // don't wrap member expressions with computed properties
         if (node.computed) {
@@ -109,7 +129,7 @@ const wrappers = new Map(Object.entries({
     ObjectExpression: wrapObjectOrArrayLiteral,
     ObjectPattern: wrapObjectOrArrayLiteral,
     
-    TemplateLiteral(node, layout) {
+    TemplateLiteral(node, {layout}) {
         const indentLevel = layout.getIndentLevel(node) + 1;
         node.expressions.forEach(child => {
             layout.lineBreakBefore(child);
@@ -118,7 +138,7 @@ const wrappers = new Map(Object.entries({
         });
     },
 
-    VariableDeclaration(node, layout, tokenList) {
+    VariableDeclaration(node, {layout}) {
         const indentLevel = layout.getIndentLevel(node) + 1;
         
         if (node.declarations.length > 1) {
@@ -129,18 +149,9 @@ const wrappers = new Map(Object.entries({
                     layout.lineBreakAfter(commaToken);
                 }
 
-                const needsExtraIndent = declarator.init &&
-                    extraIndentForVariable.has(declarator.init.type) &&
-                    layout.isMultiLine(declarator.init);
-                    
                 if (i > 0) {
                     layout.indentLevel(declarator, indentLevel);
                 }
-                
-                if (needsExtraIndent) {
-                    extraIndentForVariable.get(declarator.init.type)(declarator.init, layout, tokenList, indentLevel);
-                }
-                
             });
         }
     }
@@ -153,7 +164,7 @@ const unwrappers = new Map(Object.entries({
     ArrayPattern: unwrapObjectOrArrayLiteral,
     ObjectPattern: unwrapObjectOrArrayLiteral,
     
-    ConditionalExpression(node, layout) {
+    ConditionalExpression(node, {layout}) {
         const questionMark = layout.findPrevious("?", node.consequent);
         const colon = layout.findNext(":", node.consequent);
 
@@ -163,7 +174,7 @@ const unwrappers = new Map(Object.entries({
         layout.spaces(colon);
     },
 
-    TemplateLiteral(node, layout) {
+    TemplateLiteral(node, {layout}) {
         node.expressions.forEach(child => {
             layout.noLineBreakBefore(child);
             layout.noLineBreakAfter(child);
@@ -177,16 +188,15 @@ const unwrappers = new Map(Object.entries({
 //-----------------------------------------------------------------------------
 
 export class Wrapper {
-    constructor(layout, tokenList) {
-        this.layout = layout;
-        this.tokenList = tokenList;
+    constructor(options) {
+        this.options = options;
     }
 
     wrap(node) {
-        return wrappers.get(node.type)(node, this.layout, this.tokenList);
+        return wrappers.get(node.type)(node, this.options);
     }
 
     noWrap(node) {
-        return unwrappers.get(node.type)(node, this.layout, this.tokenList);
+        return unwrappers.get(node.type)(node, this.options);
     }
 }

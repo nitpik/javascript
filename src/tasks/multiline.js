@@ -55,6 +55,12 @@ export default function(context) {
             }    
         },    
 
+        FunctionExpression(node) {
+            if (layout.isMultiLine(node) || layout.isLineTooLong(node)) {
+                layout.wrap(node);
+            }        
+        },
+
         MemberExpression(node, parent) {
 
             // covers chained member calls like `a.b.c`

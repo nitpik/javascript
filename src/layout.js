@@ -168,10 +168,17 @@ export class Layout {
         this.tokenList = parts;
         let nodeParts = new Map();
         this.nodeParts = nodeParts;
-        this.wrapper = new Wrapper(this, this.tokenList);
+        let nodeParents = this.nodeParents = new Map();
+        this.wrapper = new Wrapper({
+            layout: this,
+            tokenList: this.tokenList,
+            nodeParents: this.nodeParents
+        });
 
         const visitor = new Visitor(espree.VisitorKeys);
         visitor.visit(sourceCode.ast, (node, parent) => {
+
+            nodeParents.set(node, parent);
 
             const firstToken = parts.getByRangeStart(node.range[0]);
 
