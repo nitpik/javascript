@@ -1,7 +1,9 @@
-{}
+{
+    "maxLineLength": 80
+}
 ---
 class Foo {
-    constructor() {
+    constructor({name = "Nicholas",sport = "basketball",found = true,lost = false,count = 123}) {
         this.name  = "foo"
     }
 
@@ -11,6 +13,11 @@ class Foo {
 };
 
 class   Bar  extends Foo {
+
+    constructor(someVariableName, someLongVariableName, someLongerVariableName, anotherVariable) {
+        super();
+    }
+
     *values ( )  {
         return [ ];
     }
@@ -25,7 +32,13 @@ class   Bar  extends Foo {
 }
 ---
 class Foo {
-    constructor() {
+    constructor({
+        name = "Nicholas",
+        sport = "basketball",
+        found = true,
+        lost = false,
+        count = 123
+    }) {
         this.name = "foo";
     }
 
@@ -35,6 +48,16 @@ class Foo {
 }
 
 class Bar extends Foo {
+
+    constructor(
+        someVariableName,
+        someLongVariableName,
+        someLongerVariableName,
+        anotherVariable
+    ) {
+        super();
+    }
+
     *values() {
         return [];
     }

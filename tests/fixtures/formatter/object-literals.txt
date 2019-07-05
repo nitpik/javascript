@@ -7,7 +7,7 @@
 module.exports = {         
     colors :[ "red" ,"green" ,"blue" ],
         name :'esfmt',
-    doSomething(){
+    doSomething({ name= "Nicholas", sport= "basketball", found=true, lost=false, count=123}){
     // some comment
         return   'I said, "hi!"'
     },
@@ -51,7 +51,13 @@ let foom ={bar:1 ,baz :2};
 module.exports = {
     colors: ["red", "green", "blue"],
     name: "esfmt",
-    doSomething() {
+    doSomething({
+        name = "Nicholas",
+        sport = "basketball",
+        found = true,
+        lost = false,
+        count = 123,
+    }) {
         // some comment
         return "I said, \"hi!\"";
     },
