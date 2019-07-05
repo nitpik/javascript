@@ -7,6 +7,11 @@
 // Helpers
 //-----------------------------------------------------------------------------
 
+const binaries = new Set([
+    "BinaryExpression",
+    "LogicalExpression"
+]);
+
 function shouldIncreaseIndentForVariableDeclaration(node, nodeParents) {
     const parent = nodeParents.get(node);
     if (parent.type === "VariableDeclarator" && parent.init === node) {
@@ -118,11 +123,29 @@ function wrapFunction(node, { layout, nodeParents, tokenList }) {
     layout.indentLevelBetween(firstBodyToken, lastBodyToken, newIndentLevel);
 }
 
+function wrapBinaryOrLogicalExpression(node, { layout }) {
+    const indentLevel = layout.getIndentLevel(node) + 1;
+    const operator = layout.findNext(node.operator, node.left);
+
+    layout.lineBreakAfter(operator);
+    layout.indentLevel(node.right, indentLevel);
+
+    if (binaries.has(node.left.type)) {
+        wrapBinaryOrLogicalExpression(node.left, { layout });
+    }
+
+    if (binaries.has(node.right.type)) {
+        wrapBinaryOrLogicalExpression(node.right, { layout });
+    }
+
+}
 
 const wrappers = new Map(Object.entries({
     ArrayExpression: wrapObjectOrArrayLiteral,
     ArrayPattern: wrapObjectOrArrayLiteral,
     ArrowFunctionExpression: wrapFunction,
+
+    BinaryExpression: wrapBinaryOrLogicalExpression,
 
     CallExpression(node, {layout}) {
         const indentLevel = layout.getIndentLevel(node) + 1;
@@ -158,6 +181,7 @@ const wrappers = new Map(Object.entries({
 
     FunctionDeclaration: wrapFunction,
     FunctionExpression: wrapFunction,
+    LogicalExpression: wrapBinaryOrLogicalExpression,
 
     MemberExpression(node, {layout}) {
 
@@ -219,7 +243,7 @@ const unwrappers = new Map(Object.entries({
         layout.noSpaceAfter(openParen);
         layout.noLineBreakBefore(closeParen);
         layout.noSpaceBefore(closeParen);
-        
+
         node.arguments.forEach(argument => {
             const maybeComma = layout.nextToken(layout.lastToken(argument));
             if (maybeComma.value === ",") {

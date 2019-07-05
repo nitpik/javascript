@@ -40,30 +40,34 @@ export default function(context) {
 
         ArrowFunctionExpression(node, parent) {
             this.FunctionExpression(node, parent);
-        },
+        },        
         
-        CallExpression(node, parent) {
+        BinaryExpression(node) {
+            if (layout.isMultiLine(node) || layout.isLineTooLong(node)) {
+                layout.wrap(node);
+            }    
+        },    
 
+        CallExpression(node, parent) {
             // covers chained member expressions like `a.b().c()`
             if (
                 isMemberExpression(parent) && layout.isMultiLine(parent) &&
                 isMemberExpression(node.callee)
             ) {
                 layout.wrap(node.callee);
-            }
+            }    
 
             // covers long calls like `foo(bar, baz)`
-            if (layout.isMultiLine(node) || layout.isLineTooLong(node)) {
-                layout.wrap(node);
-            }
-        },
-
-        ConditionalExpression(node) {
             if (layout.isMultiLine(node) || layout.isLineTooLong(node)) {
                 layout.wrap(node);
             }    
         },    
 
+        ConditionalExpression(node) {
+            if (layout.isMultiLine(node) || layout.isLineTooLong(node)) {
+                layout.wrap(node);
+            }        
+        },        
         FunctionDeclaration(node) {
             this.FunctionExpression(node);
         },

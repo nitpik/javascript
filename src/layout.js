@@ -749,13 +749,17 @@ export class Layout {
                     type: "LineBreak",
                     value: this.options.lineEndings
                 }, token);
+                return true;
             }
         } else {
             this.tokenList.insertAfter({
                 type: "LineBreak",
                 value: this.options.lineEndings
             }, token);
+            return true;
         }
+
+        return false;
     }
 
     noLineBreakAfter(tokenOrNode) {

@@ -25,6 +25,8 @@ foo
 .boom();
 
 someLongFunctionName(somethingLongerThanNecessary,anotherLongerThanNecessaryThing,andOneMoreLongThing);
+
+somethingLongerThanNecessary + anotherLongerThanNecessaryThing + andOneMoreLongThing;
 ---
 somethingLongerThanNecessary
     ? anotherLongerThanNecessaryThing
@@ -59,3 +61,7 @@ someLongFunctionName(
     anotherLongerThanNecessaryThing,
     andOneMoreLongThing
 );
+
+somethingLongerThanNecessary +
+    anotherLongerThanNecessaryThing +
+    andOneMoreLongThing;
