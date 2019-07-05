@@ -100,7 +100,7 @@ function wrapFunction(node, { layout, nodeParents, tokenList }) {
         layout.lineBreakAfter(openParen);
         layout.lineBreakBefore(closeParen);
         layout.indentLevel(closeParen, originalIndentLevel);
-        
+
         node.params.forEach(param => {
             layout.indentLevel(param, newIndentLevel);
             const lastParamToken = layout.lastToken(param);
@@ -123,6 +123,28 @@ const wrappers = new Map(Object.entries({
     ArrayExpression: wrapObjectOrArrayLiteral,
     ArrayPattern: wrapObjectOrArrayLiteral,
     ArrowFunctionExpression: wrapFunction,
+
+    CallExpression(node, {layout}) {
+        const indentLevel = layout.getIndentLevel(node) + 1;
+        const openParen = layout.findNext("(", node.callee);
+        const closeParen = layout.lastToken(node);
+
+        if (node.arguments.length > 1) {
+            layout.lineBreakAfter(openParen);
+            layout.lineBreakBefore(closeParen);
+
+            node.arguments.forEach(argument => {
+                layout.indentLevel(argument, indentLevel);
+                const maybeComma = layout.nextToken(layout.lastToken(argument));
+                if (maybeComma.value === ",") {
+                    layout.lineBreakAfter(maybeComma)
+                }
+            });
+        } else {
+            layout.noSpaceAfter(openParen);
+            layout.noSpaceBefore(closeParen);
+        }
+    },
 
     ConditionalExpression(node, {layout}) {
         const questionMark = layout.findPrevious("?", node.consequent);

@@ -51,6 +51,11 @@ export default function(context) {
             ) {
                 layout.wrap(node.callee);
             }
+
+            // covers long calls like `foo(bar, baz)`
+            if (layout.isMultiLine(node) || layout.isLineTooLong(node)) {
+                layout.wrap(node);
+            }
         },
 
         ConditionalExpression(node) {

@@ -23,6 +23,8 @@ foo
 .bar
 .baz
 .boom();
+
+someLongFunctionName(somethingLongerThanNecessary,anotherLongerThanNecessaryThing,andOneMoreLongThing);
 ---
 somethingLongerThanNecessary
     ? anotherLongerThanNecessaryThing
@@ -51,3 +53,9 @@ foo
     .bar
     .baz
     .boom();
+
+someLongFunctionName(
+    somethingLongerThanNecessary,
+    anotherLongerThanNecessaryThing,
+    andOneMoreLongThing
+);

@@ -586,7 +586,7 @@ export class Layout {
         const matcher = typeof valueOrFunction === "string"
             ? part => part.value === valueOrFunction
             : valueOrFunction;
-        const part = partOrNode ? this.firstToken(partOrNode) : this.tokenList.first();
+        const part = partOrNode ? this.lastToken(partOrNode) : this.tokenList.first();
         return this.tokenList.findNext(matcher, part);
     }
 
