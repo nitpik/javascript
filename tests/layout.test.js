@@ -54,6 +54,16 @@ describe("Layout", () => {
 
         });
 
+        it("should unwrap a call expression", () => {
+            const text = "funcName(\na,\nb,\nc\n);";
+            const expected = "funcName(a, b, c);";
+            const ast = parse(text);
+            const layout = new Layout({ ast, text });
+            layout.noWrap(ast.body[0].expression);
+            expect(layout.toString()).to.equal(expected);
+
+        });
+
         it("should unwrap a conditional", () => {
             const text = "foo\n    ? bar\n    : baz;";
             const expected = "foo ? bar : baz;";

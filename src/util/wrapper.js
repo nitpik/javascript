@@ -211,6 +211,25 @@ const unwrappers = new Map(Object.entries({
     ArrayPattern: unwrapObjectOrArrayLiteral,
     ObjectPattern: unwrapObjectOrArrayLiteral,
     
+    CallExpression(node, { layout }) {
+        const openParen = layout.findNext("(", node.callee);
+        const closeParen = layout.lastToken(node);
+
+        layout.noLineBreakAfter(openParen);
+        layout.noSpaceAfter(openParen);
+        layout.noLineBreakBefore(closeParen);
+        layout.noSpaceBefore(closeParen);
+        
+        node.arguments.forEach(argument => {
+            const maybeComma = layout.nextToken(layout.lastToken(argument));
+            if (maybeComma.value === ",") {
+                layout.noLineBreakAfter(maybeComma);
+                layout.noSpaceBefore(maybeComma);
+                layout.spaceAfter(maybeComma);
+            }
+        });
+    },
+
     ConditionalExpression(node, {layout}) {
         const questionMark = layout.findPrevious("?", node.consequent);
         const colon = layout.findNext(":", node.consequent);
