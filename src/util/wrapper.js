@@ -80,7 +80,7 @@ function wrapObjectOrArrayLiteral(node, {layout, nodeParents, tokenList }) {
 
 }
 
-function wrapFunctionExpression(node, { layout, nodeParents, tokenList }) {
+function wrapFunction(node, { layout, nodeParents, tokenList }) {
     const { firstToken, lastToken } = layout.boundaryTokens(node.body);
     const firstBodyToken = tokenList.nextTokenOrComment(firstToken);
     const lastBodyToken = tokenList.previousTokenOrComment(lastToken);
@@ -92,6 +92,26 @@ function wrapFunctionExpression(node, { layout, nodeParents, tokenList }) {
 
     const newIndentLevel = originalIndentLevel + 1;
 
+    // indent arguments
+    if (node.params.length > 1 && layout.isLineTooLong(node)) {
+        const openParen = layout.findPrevious("(", node.params[0]);
+        const closeParen = layout.findPrevious(")", firstToken);
+
+        layout.lineBreakAfter(openParen);
+        layout.lineBreakBefore(closeParen);
+        layout.indentLevel(closeParen, originalIndentLevel);
+        
+        node.params.forEach(param => {
+            layout.indentLevel(param, newIndentLevel);
+            const lastParamToken = layout.lastToken(param);
+            const maybeComma = layout.nextToken(lastParamToken);
+            if (maybeComma.value === ",") {
+                layout.lineBreakAfter(maybeComma);
+            }
+        });
+    }
+
+    // indent body
     layout.lineBreakAfter(firstToken);
     layout.lineBreakBefore(lastToken);
     layout.indentLevel(lastToken, originalIndentLevel);
@@ -102,7 +122,7 @@ function wrapFunctionExpression(node, { layout, nodeParents, tokenList }) {
 const wrappers = new Map(Object.entries({
     ArrayExpression: wrapObjectOrArrayLiteral,
     ArrayPattern: wrapObjectOrArrayLiteral,
-    ArrowFunctionExpression: wrapFunctionExpression,
+    ArrowFunctionExpression: wrapFunction,
 
     ConditionalExpression(node, {layout}) {
         const questionMark = layout.findPrevious("?", node.consequent);
@@ -114,7 +134,8 @@ const wrappers = new Map(Object.entries({
         layout.indent(colon);
     },
 
-    FunctionExpression: wrapFunctionExpression,
+    FunctionDeclaration: wrapFunction,
+    FunctionExpression: wrapFunction,
 
     MemberExpression(node, {layout}) {
 

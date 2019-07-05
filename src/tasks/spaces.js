@@ -153,6 +153,19 @@ export default function(context) {
             layout.spaces(operatorToken);
         },
 
+        BlockStatement(node) {
+            const { firstToken, lastToken } = layout.boundaryTokens(node);
+            if (layout.isSameLine(firstToken, lastToken)) {
+                if (node.body.length) {
+                    layout.spaceAfter(firstToken);
+                    layout.spaceBefore(lastToken);
+                } else {
+                    layout.noSpaceAfter(firstToken);
+                    layout.noSpaceBefore(lastToken);
+                }
+            }
+        },
+
         ConditionalExpression(node) {
             const questionMark = layout.findPrevious("?", node.consequent);
             const colon = layout.findNext(":", node.consequent);

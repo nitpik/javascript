@@ -59,6 +59,10 @@ export default function(context) {
             }    
         },    
 
+        FunctionDeclaration(node) {
+            this.FunctionExpression(node);
+        },
+
         FunctionExpression(node) {
             if (layout.isMultiLine(node) || layout.isLineTooLong(node)) {
                 layout.wrap(node);

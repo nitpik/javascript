@@ -259,6 +259,14 @@ export class Layout {
         return this.tokenList.previousToken(part);
     }
 
+    nextTokenOrComment(part) {
+        return this.tokenList.nextTokenOrComment(part);
+    }
+
+    previousTokenOrComment(part) {
+        return this.tokenList.previousTokenOrComment(part);
+    }
+
     isFirstOnLine(startToken) {
         let token = this.tokenList.previous(startToken);
         while (token) {

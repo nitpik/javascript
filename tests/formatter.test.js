@@ -70,7 +70,7 @@ a(\`hello \${
                     options: JSON.parse(options)
                 });
                 const result = formatter.format(source);
-                expect(result.replace(/ /g, ".")).to.deep.equal(expected.replace(/ /g, "."));
+                expect(result.replace(/ /g, "\u00b7")).to.deep.equal(expected.replace(/ /g, "\u00b7"));
             });
         });
     });

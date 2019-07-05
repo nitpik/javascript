@@ -1,0 +1,78 @@
+{
+    "maxLineLength": 80
+}
+---
+function doSomething({greeting = "hello", greeted = '"World"', silent = false, onMouseOver}) {
+
+  if(!greeting){return null};
+}
+
+function doSomethingElse(greeting = "hello", greeted = "world", silent = false, onMouseOver) {
+return true;
+}
+
+var x = function({greeting = "hello", greeted = "world"}, silent = false, onMouseOver) {
+return true;
+}
+
+const y = function({greeting = "hello", greeted = "world", silent = false, onMouseOver, someReallyLongVariable}, foo) {
+return true;
+}, z = "hi";
+
+const a = ({greeting = "hello", greeted = "world", silent = false, onMouseOver, someReallyLongVariable}, foo) => {
+return true;
+};
+---
+function doSomething({
+    greeting = "hello",
+    greeted = "\"World\"",
+    silent = false,
+    onMouseOver
+}) {
+
+    if (!greeting) { return null; }
+}
+
+function doSomethingElse(
+    greeting = "hello",
+    greeted = "world",
+    silent = false,
+    onMouseOver
+) {
+    return true;
+}
+
+var x = function(
+    { greeting = "hello", greeted = "world" },
+    silent = false,
+    onMouseOver
+) {
+    return true;
+};
+
+const y = function(
+        {
+            greeting = "hello",
+            greeted = "world",
+            silent = false,
+            onMouseOver,
+            someReallyLongVariable
+        },
+        foo
+    ) {
+        return true;
+    },
+    z = "hi";
+
+const a = (
+    {
+        greeting = "hello",
+        greeted = "world",
+        silent = false,
+        onMouseOver,
+        someReallyLongVariable
+    },
+    foo
+) => {
+    return true;
+};
