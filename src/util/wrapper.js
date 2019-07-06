@@ -130,6 +130,30 @@ function wrapBinaryOrLogicalExpression(node, { layout, nodeParents }) {
     layout.indentLevel(node.right, indentLevel);
 }
 
+function unwrapBinaryOrLogicalExpression(node, { layout }) {
+    const operator = layout.findNext(node.operator, node.left);
+    layout.noLineBreakAfter(operator);
+    layout.spaces(operator);
+}
+
+function wrapStatementWithTestCondition(node, { layout }) {
+    const openParen = layout.findPrevious("(", node.test);
+    const closeParen = layout.findNext(")", node.test);
+
+    layout.noLineBreakAfter(openParen);
+    layout.lineBreakBefore(closeParen);
+}
+
+function unwrapStatementWithTestCondition(node, { layout }) {
+    const openParen = layout.findPrevious("(", node.test);
+    const closeParen = layout.findNext(")", node.test);
+
+    layout.noLineBreakAfter(openParen);
+    layout.noLineBreakBefore(closeParen);
+    layout.noSpaceAfter(openParen);
+    layout.noSpaceBefore(closeParen);
+}
+
 const wrappers = new Map(Object.entries({
     ArrayExpression: wrapObjectOrArrayLiteral,
     ArrayPattern: wrapObjectOrArrayLiteral,
@@ -169,8 +193,10 @@ const wrappers = new Map(Object.entries({
         layout.indent(colon);
     },
 
+    DoWhileStatement: wrapStatementWithTestCondition,
     FunctionDeclaration: wrapFunction,
     FunctionExpression: wrapFunction,
+    IfStatement: wrapStatementWithTestCondition,
     LogicalExpression: wrapBinaryOrLogicalExpression,
 
     MemberExpression(node, {layout}) {
@@ -215,16 +241,16 @@ const wrappers = new Map(Object.entries({
                 }
             });
         }
-    }
+    },
+    WhileStatement: wrapStatementWithTestCondition,
     
 }));
 
 const unwrappers = new Map(Object.entries({
     ArrayExpression: unwrapObjectOrArrayLiteral,
-    ObjectExpression: unwrapObjectOrArrayLiteral,
     ArrayPattern: unwrapObjectOrArrayLiteral,
-    ObjectPattern: unwrapObjectOrArrayLiteral,
-    
+    BinaryExpression: unwrapBinaryOrLogicalExpression,
+
     CallExpression(node, { layout }) {
         const openParen = layout.findNext("(", node.callee);
         const closeParen = layout.lastToken(node);
@@ -254,13 +280,20 @@ const unwrappers = new Map(Object.entries({
         layout.spaces(colon);
     },
 
+    DoWhileStatement: unwrapStatementWithTestCondition,
+    IfStatement: unwrapStatementWithTestCondition,
+    LogicalExpression: unwrapBinaryOrLogicalExpression,
+    ObjectExpression: unwrapObjectOrArrayLiteral,
+    ObjectPattern: unwrapObjectOrArrayLiteral,
+    
     TemplateLiteral(node, {layout}) {
         node.expressions.forEach(child => {
             layout.noLineBreakBefore(child);
             layout.noLineBreakAfter(child);
         });
-    }
+    },
 
+    WhileStatement: unwrapStatementWithTestCondition,
 }));
 
 //-----------------------------------------------------------------------------

@@ -283,6 +283,29 @@ export class Layout {
     }
 
     /**
+     * Gets number of characters amongst two tokens.
+     * @param {Token} firstToken The token to start counting from.
+     * @param {Token} lastToken The last token to count.
+     * @returns {int} The number of characters among the tokens.
+     */
+    getLength(firstToken, lastToken) {
+        let currentToken = firstToken;
+        let characterCount = 0;
+        
+        // then count the other tokens
+        while (currentToken && currentToken !== lastToken) {
+            characterCount += currentToken.value.length;
+            currentToken = this.tokenList.next(currentToken);
+        }
+
+        if (currentToken) {
+            characterCount += currentToken.value.length;
+        }
+
+        return characterCount;
+    }
+    
+    /**
      * Gets number of characters in the line represented by the token or node.
      * @param {Token|Node} tokenOrNode The token or node whose line should be checked.
      * @returns {int} The number of characters in the line.

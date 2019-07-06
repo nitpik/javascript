@@ -16,6 +16,18 @@ baz()
 
 for (let i=0;i<10;i++)
 bar()
+
+if (somethingLongerThanNecessary || anotherLongerThanNecessaryThing && andOneMoreLongThing) {
+    foo();
+}
+
+while (somethingLongerThanNecessary || anotherLongerThanNecessaryThing && andOneMoreLongThing) {
+foo();
+}
+
+do {
+    foo();
+} while (somethingLongerThanNecessary || anotherLongerThanNecessaryThing && andOneMoreLongThing);
 ---
 if (foo)
     bar();
@@ -31,3 +43,24 @@ for (const foo in bar)
 
 for (let i = 0; i < 10; i++)
     bar();
+
+if (somethingLongerThanNecessary ||
+    anotherLongerThanNecessaryThing &&
+    andOneMoreLongThing
+) {
+    foo();
+}
+
+while (somethingLongerThanNecessary ||
+    anotherLongerThanNecessaryThing &&
+    andOneMoreLongThing
+) {
+    foo();
+}
+
+do {
+    foo();
+} while (somethingLongerThanNecessary ||
+    anotherLongerThanNecessaryThing &&
+    andOneMoreLongThing
+);

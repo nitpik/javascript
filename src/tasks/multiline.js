@@ -25,6 +25,18 @@ function isMemberExpression(node) {
 export default function(context) {
     const layout = context.layout;
     
+    function wrapIfTooLong(node) {
+        if (layout.isLineTooLong(node)) {
+            layout.wrap(node);
+        }
+    }
+
+    function wrapIfTooLongOrMultiLine(node) {
+        if (layout.isMultiLine(node) || layout.isLineTooLong(node)) {
+            layout.wrap(node);
+        }
+    }
+
     return {
         ArrayExpression(node) {
             const isMultiLine = layout.isMultiLine(node);
@@ -57,33 +69,37 @@ export default function(context) {
 
         CallExpression(node, parent) {
             // covers chained member expressions like `a.b().c()`
-            if (
-                isMemberExpression(parent) && layout.isMultiLine(parent) &&
+            if (isMemberExpression(parent) && layout.isMultiLine(parent) &&
                 isMemberExpression(node.callee)
             ) {
                 layout.wrap(node.callee);
             }    
 
             // covers long calls like `foo(bar, baz)`
-            if (layout.isMultiLine(node) || layout.isLineTooLong(node)) {
-                layout.wrap(node);
-            }    
-        },    
+            wrapIfTooLongOrMultiLine(node);
+        },
 
-        ConditionalExpression(node) {
-            if (layout.isMultiLine(node) || layout.isLineTooLong(node)) {
+        ConditionalExpression: wrapIfTooLongOrMultiLine,       
+        
+        DoWhileStatement(node) {
+
+            /*
+             * Because the condition is on the last list of a do-while loop
+             * we need to check if the last line is too long rather than the
+             * first line.
+             */
+            const openParen = layout.findPrevious("(", node.test);
+            if (layout.isLineTooLong(openParen)) {
                 layout.wrap(node);
-            }        
-        },        
+            }
+        },
+
         FunctionDeclaration(node) {
             this.FunctionExpression(node);
         },
 
-        FunctionExpression(node) {
-            if (layout.isMultiLine(node) || layout.isLineTooLong(node)) {
-                layout.wrap(node);
-            }        
-        },
+        FunctionExpression: wrapIfTooLongOrMultiLine,
+        IfStatement: wrapIfTooLong,
 
         LogicalExpression(node, parent) {
             this.BinaryExpression(node, parent);
@@ -100,11 +116,7 @@ export default function(context) {
             }
         },
 
-        TemplateLiteral(node) {
-            if (layout.isLineTooLong(node)) {
-                layout.wrap(node);
-            }
-        },
+        TemplateLiteral: wrapIfTooLong,
 
         ObjectExpression(node) {
             const isMultiLine = layout.isMultiLine(node);
@@ -123,11 +135,8 @@ export default function(context) {
             this.ObjectExpression(node);
         },
 
-        VariableDeclaration(node) {
-            if (layout.isLineTooLong(node) || layout.isMultiLine(node)) {
-                layout.wrap(node);
-            }
-        }
+        VariableDeclaration: wrapIfTooLongOrMultiLine,
+        WhileStatement: wrapIfTooLong,
 
     };
 }

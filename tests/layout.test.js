@@ -64,6 +64,17 @@ describe("Layout", () => {
 
         });
 
+        it("should unwrap an if statement", () => {
+            const text = "if (\na+\nb\n){\n foo();\n }";
+            const expected = "if (a + b) {\n    foo();\n}";
+            const ast = parse(text);
+            const layout = new Layout({ ast, text });
+            layout.noWrap(ast.body[0]);
+            layout.noWrap(ast.body[0].test);
+            expect(layout.toString()).to.equal(expected);
+
+        });
+
         it("should unwrap a conditional", () => {
             const text = "foo\n    ? bar\n    : baz;";
             const expected = "foo ? bar : baz;";
@@ -196,6 +207,21 @@ describe("Layout", () => {
         });
 
     });
+
+    describe("getLength()", () => {
+
+        it("should return the correct length when the line has no indent", () => {
+            const text = "a.b();";
+            const ast = parse(text);
+            const layout = new Layout({ ast, text });
+            const { firstToken, lastToken } = layout.boundaryTokens(ast.body[0].expression.callee);
+            const length = layout.getLength(firstToken, lastToken);
+            expect(text).to.equal(layout.toString());
+            expect(length).to.equal(3);
+        });
+
+    });
+
 
     describe("getLineLength()", () => {
 
