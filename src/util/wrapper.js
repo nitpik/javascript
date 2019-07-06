@@ -197,6 +197,35 @@ const wrappers = new Map(Object.entries({
     FunctionDeclaration: wrapFunction,
     FunctionExpression: wrapFunction,
     IfStatement: wrapStatementWithTestCondition,
+
+    ImportDeclaration(node, { layout }) {
+        let startSpecifierIndex = 0;
+
+        // don't consider default or namespace specifiers
+        if (node.specifiers[0].type !== "ImportSpecifier") {
+            startSpecifierIndex = 1;
+        }
+
+        if (node.specifiers[startSpecifierIndex]) {
+            const openBrace = layout.findPrevious("{", node.specifiers[startSpecifierIndex]);
+            const closeBrace = layout.findNext("}", node.specifiers[node.specifiers.length - 1]);
+            layout.lineBreakAfter(openBrace);
+            layout.lineBreakBefore(closeBrace);
+
+            for (let i = startSpecifierIndex; i < node.specifiers.length; i++) {
+
+                // imports always have no indent because they are top-level
+                layout.indentLevel(node.specifiers[i], 1);
+                const lastSpecifierToken = layout.lastToken(node.specifiers[i]);
+                const maybeComma = layout.nextToken(lastSpecifierToken);
+                if (maybeComma.value === ",") {
+                    layout.noSpaceBefore(maybeComma);
+                    layout.lineBreakAfter(maybeComma);
+                }
+            }
+        }
+    },
+
     LogicalExpression: wrapBinaryOrLogicalExpression,
 
     MemberExpression(node, {layout}) {
@@ -282,6 +311,37 @@ const unwrappers = new Map(Object.entries({
 
     DoWhileStatement: unwrapStatementWithTestCondition,
     IfStatement: unwrapStatementWithTestCondition,
+
+    ImportDeclaration(node, { layout }) {
+        let startSpecifierIndex = 0;
+
+        // don't consider default or namespace specifiers
+        if (node.specifiers[0].type !== "ImportSpecifier") {
+            startSpecifierIndex = 1;
+        }
+
+        if (node.specifiers[startSpecifierIndex]) {
+            const openBrace = layout.findPrevious("{", node.specifiers[startSpecifierIndex]);
+            const closeBrace = layout.findNext("}", node.specifiers[node.specifiers.length - 1]);
+            layout.noLineBreakAfter(openBrace);
+            layout.spaceAfter(openBrace);
+            layout.noLineBreakBefore(closeBrace);
+            layout.spaceBefore(closeBrace);
+
+            for (let i = startSpecifierIndex; i < node.specifiers.length; i++) {
+                
+                const lastSpecifierToken = layout.lastToken(node.specifiers[i]);
+                const maybeComma = layout.nextToken(lastSpecifierToken);
+
+                if (maybeComma.value === ",") {
+                    layout.noSpaceBefore(maybeComma);
+                    layout.noLineBreakAfter(maybeComma);
+                    layout.spaceAfter(maybeComma);
+                }
+            }
+        }
+    },
+
     LogicalExpression: unwrapBinaryOrLogicalExpression,
     ObjectExpression: unwrapObjectOrArrayLiteral,
     ObjectPattern: unwrapObjectOrArrayLiteral,

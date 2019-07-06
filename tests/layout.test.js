@@ -18,7 +18,7 @@ const expect = chai.expect;
 //-----------------------------------------------------------------------------
 
 function parse(text) {
-    return espree.parse(text, { range: true, tokens: true, comment: true, ecmaVersion: 2019 });
+    return espree.parse(text, { range: true, tokens: true, comment: true, ecmaVersion: 2019, sourceType: "module" });
 }
 
 //-----------------------------------------------------------------------------
@@ -71,6 +71,16 @@ describe("Layout", () => {
             const layout = new Layout({ ast, text });
             layout.noWrap(ast.body[0]);
             layout.noWrap(ast.body[0].test);
+            expect(layout.toString()).to.equal(expected);
+
+        });
+
+        it("should unwrap an import statement", () => {
+            const text = "import {\nfoo,\nbar,\nbaz\n} from \"foo\";";
+            const expected = "import { foo, bar, baz } from \"foo\";";
+            const ast = parse(text);
+            const layout = new Layout({ ast, text });
+            layout.noWrap(ast.body[0]);
             expect(layout.toString()).to.equal(expected);
 
         });

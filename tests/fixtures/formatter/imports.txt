@@ -1,11 +1,29 @@
-{}
+{
+    "maxLineLength": 80
+}
 ---
 import {foo} from  "bar"
 import {bar,baz}  from "bang";
 import *  as bang from "bing"
 import   "yo"
+
+import {aReallyLongVariableName, anotherReallyLongVariableName, yetAnotherReallyLongVariableName} from "foo";
+
+import bing, {aReallyLongVariableName2, anotherReallyLongVariableName2, yetAnotherReallyLongVariableName2} from "foo";
 ---
 import { foo } from "bar";
 import { bar, baz } from "bang";
 import * as bang from "bing";
 import "yo";
+
+import {
+    aReallyLongVariableName,
+    anotherReallyLongVariableName,
+    yetAnotherReallyLongVariableName
+} from "foo";
+
+import bing, {
+    aReallyLongVariableName2,
+    anotherReallyLongVariableName2,
+    yetAnotherReallyLongVariableName2
+} from "foo";

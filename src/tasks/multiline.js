@@ -100,6 +100,7 @@ export default function(context) {
 
         FunctionExpression: wrapIfTooLongOrMultiLine,
         IfStatement: wrapIfTooLong,
+        ImportDeclaration: wrapIfTooLongOrMultiLine,
 
         LogicalExpression(node, parent) {
             this.BinaryExpression(node, parent);
