@@ -27,6 +27,8 @@ foo
 someLongFunctionName(somethingLongerThanNecessary,anotherLongerThanNecessaryThing,andOneMoreLongThing);
 
 somethingLongerThanNecessary + anotherLongerThanNecessaryThing + andOneMoreLongThing;
+
+somethingLongerThanNecessary || anotherLongerThanNecessaryThing && andOneMoreLongThing;
 ---
 somethingLongerThanNecessary
     ? anotherLongerThanNecessaryThing
@@ -64,4 +66,8 @@ someLongFunctionName(
 
 somethingLongerThanNecessary +
     anotherLongerThanNecessaryThing +
+    andOneMoreLongThing;
+
+somethingLongerThanNecessary ||
+    anotherLongerThanNecessaryThing &&
     andOneMoreLongThing;

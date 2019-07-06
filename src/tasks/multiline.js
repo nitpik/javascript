@@ -7,6 +7,11 @@
 // Helpers
 //-----------------------------------------------------------------------------
 
+const binaries = new Set([
+    "BinaryExpression",
+    "LogicalExpression"
+]);
+
 
 function isMemberExpression(node) {
     return Boolean(node && node.type === "MemberExpression");
@@ -42,8 +47,10 @@ export default function(context) {
             this.FunctionExpression(node, parent);
         },        
         
-        BinaryExpression(node) {
-            if (layout.isMultiLine(node) || layout.isLineTooLong(node)) {
+        BinaryExpression(node, parent) {
+            if (layout.isMultiLine(node) || layout.isLineTooLong(node) ||
+                (binaries.has(parent.type) && layout.isMultiLine(parent))
+            ) {
                 layout.wrap(node);
             }    
         },    
@@ -76,6 +83,10 @@ export default function(context) {
             if (layout.isMultiLine(node) || layout.isLineTooLong(node)) {
                 layout.wrap(node);
             }        
+        },
+
+        LogicalExpression(node, parent) {
+            this.BinaryExpression(node, parent);
         },
 
         MemberExpression(node, parent) {

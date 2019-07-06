@@ -7,10 +7,6 @@
 // Helpers
 //-----------------------------------------------------------------------------
 
-const binaries = new Set([
-    "BinaryExpression",
-    "LogicalExpression"
-]);
 
 function shouldIncreaseIndentForVariableDeclaration(node, nodeParents) {
     const parent = nodeParents.get(node);
@@ -123,21 +119,15 @@ function wrapFunction(node, { layout, nodeParents, tokenList }) {
     layout.indentLevelBetween(firstBodyToken, lastBodyToken, newIndentLevel);
 }
 
-function wrapBinaryOrLogicalExpression(node, { layout }) {
-    const indentLevel = layout.getIndentLevel(node) + 1;
+function wrapBinaryOrLogicalExpression(node, { layout, nodeParents }) {
+    const parent = nodeParents.get(node);
+    const indentLevel = layout.isMultiLine(parent)
+        ? layout.getIndentLevel(parent) + 1
+        : layout.getIndentLevel(node) + 1;
     const operator = layout.findNext(node.operator, node.left);
 
     layout.lineBreakAfter(operator);
     layout.indentLevel(node.right, indentLevel);
-
-    if (binaries.has(node.left.type)) {
-        wrapBinaryOrLogicalExpression(node.left, { layout });
-    }
-
-    if (binaries.has(node.right.type)) {
-        wrapBinaryOrLogicalExpression(node.right, { layout });
-    }
-
 }
 
 const wrappers = new Map(Object.entries({
