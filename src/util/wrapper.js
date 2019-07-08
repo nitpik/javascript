@@ -20,33 +20,29 @@ function shouldIncreaseIndentForVariableDeclaration(node, nodeParents) {
     return false;
 }
 
-function unwrapObjectOrArrayLiteral(node, {layout, tokenList}) {
+function unwrapObjectOrArrayLiteral(node, {layout}) {
     const children = node.type.startsWith("Array") ? "elements" : "properties";
     const { firstToken, lastToken } = layout.boundaryTokens(node);
-    let token = firstToken;
 
     if (node[children].length === 0) {
 
         // if there are comments then we can't unwrap
-        if (tokenList.nextTokenOrComment(firstToken) === lastToken) {
-            while (token && token !== lastToken) {
-                const nextToken = tokenList.next(token);
-                if (tokenList.isWhitespaceOrLineBreak(token)) {
-                    tokenList.delete(token);
-                }
-                token = nextToken;
-            }
+        if (layout.nextTokenOrComment(firstToken) === lastToken) {
+            layout.noLineBreakAfter(firstToken);
+            layout.noSpaceAfter(firstToken);
+            layout.noLineBreakBefore(lastToken);
+            layout.noSpaceBefore(lastToken);
         }
     } else {
         // TODO
     }
 }
 
-function wrapObjectOrArrayLiteral(node, {layout, nodeParents, tokenList }) {
+function wrapObjectOrArrayLiteral(node, {layout, nodeParents }) {
     const children = node.type.startsWith("Array") ? "elements" : "properties";
     const { firstToken, lastToken } = layout.boundaryTokens(node);
-    const firstBodyToken = tokenList.nextTokenOrComment(firstToken);
-    const lastBodyToken = tokenList.previousTokenOrComment(lastToken);
+    const firstBodyToken = layout.nextTokenOrComment(firstToken);
+    const lastBodyToken = layout.previousTokenOrComment(lastToken);
     let originalIndentLevel = layout.getIndentLevel(node);
     
     if (shouldIncreaseIndentForVariableDeclaration(node, nodeParents)) {
@@ -81,10 +77,10 @@ function wrapObjectOrArrayLiteral(node, {layout, nodeParents, tokenList }) {
 
 }
 
-function wrapFunction(node, { layout, nodeParents, tokenList }) {
+function wrapFunction(node, { layout, nodeParents }) {
     const { firstToken, lastToken } = layout.boundaryTokens(node.body);
-    const firstBodyToken = tokenList.nextTokenOrComment(firstToken);
-    const lastBodyToken = tokenList.previousTokenOrComment(lastToken);
+    const firstBodyToken = layout.nextTokenOrComment(firstToken);
+    const lastBodyToken = layout.previousTokenOrComment(lastToken);
     let originalIndentLevel = layout.getIndentLevel(node);
 
     if (shouldIncreaseIndentForVariableDeclaration(node, nodeParents)) {
