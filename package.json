@@ -7,17 +7,16 @@
     "build": "rollup -c",
     "prepublish": "npm run build",
     "lint": "eslint src/ tests/",
-    "test": "mocha -r esm tests/ --recursive"
+    "test": "nyc --include src/** mocha -r esm tests/ --recursive"
   },
-    "repository": {
-      "type": "git",
-      "url": "git+https://github.com/nitpick/js.git"
-    },
-    "bugs": {
-      "url": "https://github.com/nitpick/js/issues"
-    },
-    "homepage": "https://github.com/nitpick/js#readme",
-    
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nitpick/js.git"
+  },
+  "bugs": {
+    "url": "https://github.com/nitpick/js/issues"
+  },
+  "homepage": "https://github.com/nitpick/js#readme",
   "keywords": [
     "Nitpik",
     "nitpikplugin",
@@ -37,6 +36,7 @@
     "ordered-set": "^1.0.0"
   },
   "devDependencies": {
+    "nyc": "^14.1.1",
     "chai": "^4.2.0",
     "eslint": "^5.8.0",
     "esm": "^3.2.25",
