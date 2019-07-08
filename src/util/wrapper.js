@@ -8,10 +8,10 @@
 //-----------------------------------------------------------------------------
 
 
-function shouldIncreaseIndentForVariableDeclaration(node, nodeParents) {
-    const parent = nodeParents.get(node);
+function shouldIncreaseIndentForVariableDeclaration(node, sourceCode) {
+    const parent = sourceCode.getParent(node);
     if (parent.type === "VariableDeclarator" && parent.init === node) {
-        const grandParent = nodeParents.get(parent);
+        const grandParent = sourceCode.getParent(parent);
 
         return grandParent.declarations.length > 1 &&
             grandParent.declarations[0] === parent;
@@ -38,14 +38,14 @@ function unwrapObjectOrArrayLiteral(node, {layout}) {
     }
 }
 
-function wrapObjectOrArrayLiteral(node, {layout, nodeParents }) {
+function wrapObjectOrArrayLiteral(node, {layout, sourceCode }) {
     const children = node.type.startsWith("Array") ? "elements" : "properties";
     const { firstToken, lastToken } = layout.boundaryTokens(node);
     const firstBodyToken = layout.nextTokenOrComment(firstToken);
     const lastBodyToken = layout.previousTokenOrComment(lastToken);
     let originalIndentLevel = layout.getIndentLevel(node);
     
-    if (shouldIncreaseIndentForVariableDeclaration(node, nodeParents)) {
+    if (shouldIncreaseIndentForVariableDeclaration(node, sourceCode)) {
         originalIndentLevel++;
     }
 
@@ -77,13 +77,13 @@ function wrapObjectOrArrayLiteral(node, {layout, nodeParents }) {
 
 }
 
-function wrapFunction(node, { layout, nodeParents }) {
+function wrapFunction(node, { layout, sourceCode }) {
     const { firstToken, lastToken } = layout.boundaryTokens(node.body);
     const firstBodyToken = layout.nextTokenOrComment(firstToken);
     const lastBodyToken = layout.previousTokenOrComment(lastToken);
     let originalIndentLevel = layout.getIndentLevel(node);
 
-    if (shouldIncreaseIndentForVariableDeclaration(node, nodeParents)) {
+    if (shouldIncreaseIndentForVariableDeclaration(node, sourceCode)) {
         originalIndentLevel++;
     }
 
@@ -115,8 +115,8 @@ function wrapFunction(node, { layout, nodeParents }) {
     layout.indentLevelBetween(firstBodyToken, lastBodyToken, newIndentLevel);
 }
 
-function wrapBinaryOrLogicalExpression(node, { layout, nodeParents }) {
-    const parent = nodeParents.get(node);
+function wrapBinaryOrLogicalExpression(node, { layout, sourceCode }) {
+    const parent = sourceCode.getParent(node);
     const indentLevel = layout.isMultiLine(parent)
         ? layout.getIndentLevel(parent) + 1
         : layout.getIndentLevel(node) + 1;
@@ -148,6 +148,29 @@ function unwrapStatementWithTestCondition(node, { layout }) {
     layout.noLineBreakBefore(closeParen);
     layout.noSpaceAfter(openParen);
     layout.noSpaceBefore(closeParen);
+}
+
+function wrapImportOrExport(node, layout, startSpecifierIndex = 0) {
+
+    if (node.specifiers[startSpecifierIndex]) {
+        const openBrace = layout.findPrevious("{", node.specifiers[startSpecifierIndex]);
+        const closeBrace = layout.findNext("}", node.specifiers[node.specifiers.length - 1]);
+        layout.lineBreakAfter(openBrace);
+        layout.lineBreakBefore(closeBrace);
+
+        for (let i = startSpecifierIndex; i < node.specifiers.length; i++) {
+
+            // imports always have no indent because they are top-level
+            layout.indentLevel(node.specifiers[i], 1);
+            const lastSpecifierToken = layout.lastToken(node.specifiers[i]);
+            const maybeComma = layout.nextToken(lastSpecifierToken);
+            if (maybeComma.value === ",") {
+                layout.noSpaceBefore(maybeComma);
+                layout.lineBreakAfter(maybeComma);
+            }
+        }
+    }
+
 }
 
 const wrappers = new Map(Object.entries({
@@ -190,6 +213,11 @@ const wrappers = new Map(Object.entries({
     },
 
     DoWhileStatement: wrapStatementWithTestCondition,
+
+    ExportNamedDeclaration(node, { layout }) {
+        wrapImportOrExport(node, layout);
+    },
+
     FunctionDeclaration: wrapFunction,
     FunctionExpression: wrapFunction,
     IfStatement: wrapStatementWithTestCondition,
@@ -202,24 +230,7 @@ const wrappers = new Map(Object.entries({
             startSpecifierIndex = 1;
         }
 
-        if (node.specifiers[startSpecifierIndex]) {
-            const openBrace = layout.findPrevious("{", node.specifiers[startSpecifierIndex]);
-            const closeBrace = layout.findNext("}", node.specifiers[node.specifiers.length - 1]);
-            layout.lineBreakAfter(openBrace);
-            layout.lineBreakBefore(closeBrace);
-
-            for (let i = startSpecifierIndex; i < node.specifiers.length; i++) {
-
-                // imports always have no indent because they are top-level
-                layout.indentLevel(node.specifiers[i], 1);
-                const lastSpecifierToken = layout.lastToken(node.specifiers[i]);
-                const maybeComma = layout.nextToken(lastSpecifierToken);
-                if (maybeComma.value === ",") {
-                    layout.noSpaceBefore(maybeComma);
-                    layout.lineBreakAfter(maybeComma);
-                }
-            }
-        }
+        wrapImportOrExport(node, layout, startSpecifierIndex);
     },
 
     LogicalExpression: wrapBinaryOrLogicalExpression,
@@ -365,7 +376,7 @@ export class Wrapper {
         return wrappers.get(node.type)(node, this.options);
     }
 
-    noWrap(node) {
+    unwrap(node) {
         return unwrappers.get(node.type)(node, this.options);
     }
 }

@@ -1,4 +1,6 @@
-{}
+{
+    "maxLineLength": 80
+}
 ---
 let   bar= 6;
 const baz  =89
@@ -8,6 +10,8 @@ export default function() {};
 export {bar};
 export {baz ,bang}
 export { bing} from "bar" ;
+
+export { someReallyLongVariableName as v, anotherReallyLongVariableName, yetAnotherReallyLongVariableName as zz } from "somewhere";
 ---
 let bar = 6;
 const baz = 89;
@@ -17,3 +21,9 @@ export default function() {}
 export { bar };
 export { baz, bang };
 export { bing } from "bar";
+
+export {
+    someReallyLongVariableName as v,
+    anotherReallyLongVariableName,
+    yetAnotherReallyLongVariableName as zz
+} from "somewhere";

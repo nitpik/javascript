@@ -43,7 +43,7 @@ describe("Layout", () => {
 
     });    
 
-    describe("noWrap()", () => {
+    xdescribe("noWrap()", () => {
         it("should unwrap a template literal", () => {
             const text = "`start ${\n    word\n} end`;";
             const expected = "`start ${word} end`;";
@@ -106,7 +106,7 @@ describe("Layout", () => {
         });
     });
 
-    describe("wrap()", () => {
+    xdescribe("wrap()", () => {
         it("should wrap a template literal", () => {
             const text = "`start ${word} end`;";
             const expected = "`start ${\n    word\n} end`;";

@@ -8,6 +8,7 @@
 //-----------------------------------------------------------------------------
 
 import estraverse from "estraverse";
+import espree from "espree";
 
 //-----------------------------------------------------------------------------
 // Symbols
@@ -20,12 +21,11 @@ const tasks = Symbol("tasks");
 //-----------------------------------------------------------------------------
 
 export class Visitor {
-    constructor(visitorKeys) {
+    constructor(visitorKeys = espree.VisitorKeys) {
         this.visitorKeys = visitorKeys;
     }
 
     visit(ast, callback) {
-
         estraverse.traverse(ast, {
             enter: callback,
             keys: this.visitorKeys,

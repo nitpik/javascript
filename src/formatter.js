@@ -10,6 +10,7 @@
 import { Layout } from "./layout.js";
 import espree from "espree";
 import { TaskVisitor } from "./visitors.js";
+import { SourceCode } from "./util/source-code.js";
 
 //-----------------------------------------------------------------------------
 // Data
@@ -56,7 +57,8 @@ export class Formatter {
         this.config = config;
     }
 
-    format(text) {
+    format(text, filePath = "<text>") {
+        // TODO: Read parser from config
         const parser = espree;
         let ast = parser.parse(text, {
             comment: true,
@@ -71,12 +73,11 @@ export class Formatter {
             }
         });
 
-
-        const layout = new Layout({ ast, text }, this.config.options);
-
+        const sourceCode = new SourceCode(text, filePath, ast);
+        const layout = new Layout(sourceCode, this.config.options);
         const visitor = new TaskVisitor(parser.VisitorKeys);
         // this.config.tasks.forEach(task => visitor.addTask(task));
-        visitor.visit(ast, new LayoutPluginContext({ ast, text, layout }));
+        visitor.visit(ast, new LayoutPluginContext({ sourceCode, layout }));
 
         return layout.toString();
 

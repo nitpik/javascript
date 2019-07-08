@@ -4,6 +4,12 @@
  */
 
 //-----------------------------------------------------------------------------
+// Imports
+//-----------------------------------------------------------------------------
+
+import { Wrapper } from "../util/wrapper.js";
+
+//-----------------------------------------------------------------------------
 // Helpers
 //-----------------------------------------------------------------------------
 
@@ -24,16 +30,17 @@ function isMemberExpression(node) {
 
 export default function(context) {
     const layout = context.layout;
-    
+    const wrapper = new Wrapper(context);
+
     function wrapIfTooLong(node) {
         if (layout.isLineTooLong(node)) {
-            layout.wrap(node);
+            wrapper.wrap(node);
         }
     }
 
     function wrapIfTooLongOrMultiLine(node) {
         if (layout.isMultiLine(node) || layout.isLineTooLong(node)) {
-            layout.wrap(node);
+            wrapper.wrap(node);
         }
     }
 
@@ -42,12 +49,12 @@ export default function(context) {
             const isMultiLine = layout.isMultiLine(node);
             if (node.elements.length) {
                 if (layout.isLineTooLong(node) || isMultiLine) {
-                    layout.wrap(node);
+                    wrapper.wrap(node);
                 } else if (!isMultiLine) {
-                    layout.noWrap(node);
+                    wrapper.unwrap(node);
                 }
             } else {
-                layout.noWrap(node);
+                wrapper.unwrap(node);
             }
         },
 
@@ -63,7 +70,7 @@ export default function(context) {
             if (layout.isMultiLine(node) || layout.isLineTooLong(node) ||
                 (binaries.has(parent.type) && layout.isMultiLine(parent))
             ) {
-                layout.wrap(node);
+                wrapper.wrap(node);
             }    
         },    
 
@@ -72,7 +79,7 @@ export default function(context) {
             if (isMemberExpression(parent) && layout.isMultiLine(parent) &&
                 isMemberExpression(node.callee)
             ) {
-                layout.wrap(node.callee);
+                wrapper.wrap(node.callee);
             }    
 
             // covers long calls like `foo(bar, baz)`
@@ -90,9 +97,11 @@ export default function(context) {
              */
             const openParen = layout.findPrevious("(", node.test);
             if (layout.isLineTooLong(openParen)) {
-                layout.wrap(node);
+                wrapper.wrap(node);
             }
         },
+
+        ExportNamedDeclaration: wrapIfTooLongOrMultiLine,
 
         FunctionDeclaration(node) {
             this.FunctionExpression(node);
@@ -113,7 +122,7 @@ export default function(context) {
                 layout.isMultiLine(node) || layout.isLineTooLong(node) ||
                 (isMemberExpression(parent) && layout.isMultiLine(parent))
             ) {
-                layout.wrap(node);
+                wrapper.wrap(node);
             }
         },
 
@@ -123,12 +132,12 @@ export default function(context) {
             const isMultiLine = layout.isMultiLine(node);
             if (node.properties.length) {
                 if (layout.isLineTooLong(node) || isMultiLine) {
-                    layout.wrap(node);
+                    wrapper.wrap(node);
                 } else if (!isMultiLine) {
-                    layout.noWrap(node);
+                    wrapper.unwrap(node);
                 }
             } else {
-                layout.noWrap(node);
+                wrapper.unwrap(node);
             }
         },
 

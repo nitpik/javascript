@@ -8,7 +8,6 @@
 //-----------------------------------------------------------------------------
 
 import { TokenList, NEWLINE } from "./util/token-list.js";
-import { Wrapper } from "./util/wrapper.js";
 import { Visitor, TaskVisitor } from "./visitors.js";
 import semicolonsTask from "./tasks/semicolons.js";
 import spacesTask from "./tasks/spaces.js";
@@ -163,24 +162,19 @@ export class Layout {
             ...options
         });
 
-        let parts = TokenList.fromAST(sourceCode.ast, sourceCode.text, this.options);
-        normalizeIndents(parts, this.options);
-        this.tokenList = parts;
+        let tokenList = TokenList.fromAST(sourceCode.ast, sourceCode.text, this.options);
+        normalizeIndents(tokenList, this.options);
+        this.tokenList = tokenList;
         let nodeParts = new Map();
         this.nodeParts = nodeParts;
         let nodeParents = this.nodeParents = new Map();
-        this.wrapper = new Wrapper({
-            layout: this,
-            tokenList: this.tokenList,
-            nodeParents: this.nodeParents
-        });
 
         const visitor = new Visitor(espree.VisitorKeys);
         visitor.visit(sourceCode.ast, (node, parent) => {
 
             nodeParents.set(node, parent);
 
-            const firstToken = parts.getByRangeStart(node.range[0]);
+            const firstToken = tokenList.getByRangeStart(node.range[0]);
 
             /*
              * Program nodes and the body property of Program nodes won't
@@ -188,9 +182,9 @@ export class Layout {
              * the last token. We can just substitue the last code part in
              * that case.
              */
-            let lastToken = parts.getByRangeStart(node.range[1]) 
-                ? parts.previous(parts.getByRangeStart(node.range[1]))
-                : parts.last();
+            let lastToken = tokenList.getByRangeStart(node.range[1]) 
+                ? tokenList.previous(tokenList.getByRangeStart(node.range[1]))
+                : tokenList.last();
 
             /*
              * Esprima-style parsers consider the trailing semicolon as the
@@ -200,7 +194,7 @@ export class Layout {
              * semicolon appears as the next part after the node if present.
              */
             if (lastToken.value === ";") {
-                lastToken = parts.previous(lastToken);
+                lastToken = tokenList.previous(lastToken);
 
                 /*
                  * If a node's last token was previously a semicolon, it's
@@ -208,8 +202,8 @@ export class Layout {
                  * between a token and a semicolon insignificant (and often a
                  * typo), so adjust the last token one more time.
                  */
-                if (parts.isWhitespace(lastToken)) {
-                    lastToken = parts.previous(lastToken);
+                if (tokenList.isWhitespace(lastToken)) {
+                    lastToken = tokenList.previous(lastToken);
                 }
             }
 
@@ -217,7 +211,7 @@ export class Layout {
             if (node.type === "EmptyStatement") {
                 if (Array.isArray(parent.body)) {
                     parent.body = parent.body.filter(child => child !== node);
-                    parts.delete(firstToken);
+                    tokenList.delete(firstToken);
                     return;
                 }
             }
@@ -234,7 +228,7 @@ export class Layout {
         tasks.addTask(indentsTask);
         tasks.addTask(multilineTask);
         // tasks.addTask(spacesTask);
-        tasks.visit(sourceCode.ast, { layout: this });
+        tasks.visit(sourceCode.ast, Object.freeze({ sourceCode, layout: this }));
     }
 
     firstToken(tokenOrNode) {
@@ -841,14 +835,6 @@ export class Layout {
             }
 
         }
-    }
-
-    wrap(node) {
-        this.wrapper.wrap(node, this, this.tokenList);
-    }
-
-    noWrap(node) {
-        this.wrapper.noWrap(node, this, this.tokenList);
     }
 
     toString() {
