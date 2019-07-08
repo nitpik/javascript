@@ -1,14 +1,33 @@
 {
-  "name": "nitpik",
+  "name": "@nitpik/js",
   "version": "0.1.0",
   "description": "A pluggable JavaScript source code formatter",
   "main": "cjs.js",
   "scripts": {
     "build": "rollup -c",
+    "prepublish": "npm run build",
     "lint": "eslint src/ tests/",
     "test": "mocha -r esm tests/ --recursive"
   },
-  "keywords": [],
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/nitpick/js.git"
+    },
+    "bugs": {
+      "url": "https://github.com/nitpick/js/issues"
+    },
+    "homepage": "https://github.com/nitpick/js#readme",
+    
+  "keywords": [
+    "Nitpik",
+    "nitpikplugin",
+    "JavaScript",
+    "Formatter",
+    "Beautifier",
+    "Prettier",
+    "Code Formatter",
+    "Style Guide"
+  ],
   "author": "nzakas",
   "license": "Apache-2.0",
   "dependencies": {
