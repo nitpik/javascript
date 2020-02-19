@@ -147,10 +147,20 @@ describe("Layout", () => {
 
     });
 
-    describe.only("noEmptyLineAfter()", () => {
+    describe("noEmptyLineAfter()", () => {
 
         it("should remove empty line when found after node", () => {
             const text = "a;\n\nb;";
+            const expected = "a;\nb;";
+            const ast = parse(text);
+            const layout = new Layout({ ast, text });
+
+            layout.noEmptyLineAfter(ast.body[0]);
+            expect(layout.toString()).to.equal(expected);
+        });
+
+        it("should remove empty line when found after node with whitespace", () => {
+            const text = "a;\n    \nb;";
             const expected = "a;\nb;";
             const ast = parse(text);
             const layout = new Layout({ ast, text });
@@ -167,6 +177,27 @@ describe("Layout", () => {
 
             const token = layout.firstToken(ast);
             layout.noEmptyLineAfter(token);
+            expect(layout.toString()).to.equal(expected);
+        });
+
+        it("should remove empty line when found after token with whitespace", () => {
+            const text = "a;\n    \nb;";
+            const expected = "a;\nb;";
+            const ast = parse(text);
+            const layout = new Layout({ ast, text });
+
+            const token = layout.firstToken(ast);
+            layout.noEmptyLineAfter(token);
+            expect(layout.toString()).to.equal(expected);
+        });
+
+        it("should remove empty line when found after last node", () => {
+            const text = "a;\nb;\n\n";
+            const expected = "a;\nb;\n";
+            const ast = parse(text);
+            const layout = new Layout({ ast, text });
+
+            layout.noEmptyLineAfter(ast.body[1]);
             expect(layout.toString()).to.equal(expected);
         });
 
@@ -188,6 +219,94 @@ describe("Layout", () => {
 
             const token = layout.firstToken(ast);
             layout.noEmptyLineAfter(token);
+            expect(layout.toString()).to.equal(expected);
+        });
+
+    });
+
+    describe("noEmptyLineBefore()", () => {
+
+        it("should remove empty line when found before node", () => {
+            const text = "a;\n\nb;";
+            const expected = "a;\nb;";
+            const ast = parse(text);
+            const layout = new Layout({ ast, text });
+
+            layout.noEmptyLineBefore(ast.body[1]);
+            expect(layout.toString()).to.equal(expected);
+        });
+
+        it("should remove empty line when found before with whitespace node", () => {
+            const text = "a;\n   \nb;";
+            const expected = "a;\nb;";
+            const ast = parse(text);
+            const layout = new Layout({ ast, text });
+
+            layout.noEmptyLineBefore(ast.body[1]);
+            expect(layout.toString()).to.equal(expected);
+        });
+
+        it("should remove empty line when found before token", () => {
+            const text = "a;\n\nb;";
+            const expected = "a;\nb;";
+            const ast = parse(text);
+            const layout = new Layout({ ast, text });
+
+            const token = layout.firstToken(ast.body[1]);
+            layout.noEmptyLineBefore(token);
+            expect(layout.toString()).to.equal(expected);
+        });
+
+        it("should remove empty line when found before token with whitespace", () => {
+            const text = "a;\n    \nb;";
+            const expected = "a;\nb;";
+            const ast = parse(text);
+            const layout = new Layout({ ast, text });
+
+            const token = layout.firstToken(ast.body[1]);
+            layout.noEmptyLineBefore(token);
+            expect(layout.toString()).to.equal(expected);
+        });
+
+        it("should remove empty line when found before first node", () => {
+            const text = "\na;\nb;";
+            const expected = "a;\nb;";
+            const ast = parse(text);
+            const layout = new Layout({ ast, text });
+
+            layout.noEmptyLineBefore(ast.body[0]);
+            expect(layout.toString()).to.equal(expected);
+        });
+
+        it("should remove empty line when found before first node with whitespace", () => {
+            const text = "    \na;\nb;";
+            const expected = "a;\nb;";
+            const ast = parse(text);
+            const layout = new Layout({ ast, text });
+
+            layout.noEmptyLineBefore(ast.body[0]);
+            expect(layout.toString()).to.equal(expected);
+        });
+
+
+        it("should not make changes when no empty line found before node", () => {
+            const text = "a;\nb;";
+            const expected = "a;\nb;";
+            const ast = parse(text);
+            const layout = new Layout({ ast, text });
+
+            layout.noEmptyLineBefore(ast.body[1]);
+            expect(layout.toString()).to.equal(expected);
+        });
+
+        it("should not make changes when no empty line found before token", () => {
+            const text = "a;\nb;";
+            const expected = "a;\nb;";
+            const ast = parse(text);
+            const layout = new Layout({ ast, text });
+
+            const token = layout.firstToken(ast.body[1]);
+            layout.noEmptyLineBefore(token);
             expect(layout.toString()).to.equal(expected);
         });
 

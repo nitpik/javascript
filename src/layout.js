@@ -809,7 +809,51 @@ export class Layout {
             }
         }
     }
+
+    noEmptyLineBefore(tokenOrNode) {
+        let token = this.firstToken(tokenOrNode);
+        let maybeLineBreak = this.tokenList.previous(token);
+
+        if (maybeLineBreak) {
+            // skip over whitespace
+            if (this.tokenList.isWhitespace(maybeLineBreak)) {
+                maybeLineBreak = this.tokenList.previous(maybeLineBreak);
+            }
+
+            if (this.tokenList.isLineBreak(maybeLineBreak)) {
+
+                // TODO: Refactor this logic
+
+                // check for beginning of file
+                if (this.tokenList.first() !== maybeLineBreak) {
+
+                    // check for preceding whitespace too
+                    let whitespace = null;
+                    maybeLineBreak = this.tokenList.previous(maybeLineBreak);
+                    if (this.tokenList.isWhitespace(maybeLineBreak)) {
+                        whitespace = maybeLineBreak;
+                        maybeLineBreak = this.tokenList.previous(maybeLineBreak);
+                    }
     
+                    // only if we find a second line break do we need to act
+                    if (this.tokenList.isLineBreak(maybeLineBreak)) {
+    
+                        // make sure to delete any preceding whitespace too
+                        if (whitespace) {
+                            this.tokenList.delete(whitespace);
+                        }
+        
+                        this.tokenList.delete(maybeLineBreak);
+                    }
+                } else {
+                    this.tokenList.delete(maybeLineBreak);
+                }
+
+            }
+        }
+    }
+ 
+
     noLineBreakAfter(tokenOrNode) {
         let token = this.lastToken(tokenOrNode);
 
