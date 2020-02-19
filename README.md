@@ -1,4 +1,4 @@
-# Nitpik
+# Nitpik JavaScript
 
 by [Nicholas C. Zakas](https://humanwhocodes.com)
 
@@ -7,7 +7,6 @@ If you find this useful, please consider supporting my work with a [donation](ht
 ## Description
 
 A pluggable JavaScript source code formatter.
-
 
 ### Automatic Formatting
 

@@ -1,7 +1,7 @@
 module.exports = {
     input: 'src/index.js',
     output: {
-        file: 'cjs.js',
+        file: 'dist/pkg.js',
         format: 'cjs'
     }
 };
