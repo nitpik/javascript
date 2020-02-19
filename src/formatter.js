@@ -57,6 +57,12 @@ export class Formatter {
         this.config = config;
     }
 
+    /**
+     * 
+     * @param {string} text The text to format. 
+     * @param {string} [filePath] The file path the text was read from.
+     * @returns {string} The formatted source code. 
+     */
     format(text, filePath = "<text>") {
         // TODO: Read parser from config
         const parser = espree;

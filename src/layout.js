@@ -779,6 +779,37 @@ export class Layout {
         return false;
     }
 
+    noEmptyLineAfter(tokenOrNode) {
+        let token = this.lastToken(tokenOrNode);
+        let maybeLineBreak = this.tokenList.next(token);
+        
+        if (maybeLineBreak) {
+            // skip over semicolons
+            if (maybeLineBreak.value === ";") {
+                maybeLineBreak = this.tokenList.next(maybeLineBreak);
+            }
+        
+            if (this.tokenList.isLineBreak(maybeLineBreak)) {
+        
+                let whitespace = null;
+                maybeLineBreak = this.tokenList.next(maybeLineBreak);
+                if (this.tokenList.isWhitespace(maybeLineBreak)) {
+                    whitespace = maybeLineBreak;
+                    maybeLineBreak = this.tokenList.next(maybeLineBreak);
+                }
+
+                if (this.tokenList.isLineBreak(maybeLineBreak)) {
+                    // make sure to delete any preceding whitespace too
+                    if (whitespace) {
+                        this.tokenList.delete(whitespace);
+                    }
+
+                    this.tokenList.delete(maybeLineBreak);
+                }
+            }
+        }
+    }
+    
     noLineBreakAfter(tokenOrNode) {
         let token = this.lastToken(tokenOrNode);
 
