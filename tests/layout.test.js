@@ -147,6 +147,87 @@ describe("Layout", () => {
 
     });
 
+    describe("emptyLineAfter()", () => {
+
+        it("should insert empty line when not found after node", () => {
+            const text = "a;";
+            const expected = "a;\n\n";
+            const ast = parse(text);
+            const layout = new Layout({ ast, text });
+
+            const semi = layout.findNext(token => token.value === ";", layout.lastToken(ast.body[0]));
+            expect(layout.emptyLineAfter(semi)).to.be.true;
+            expect(layout.toString()).to.equal(expected);
+        });
+
+        it("should insert empty line when there's one line break after node", () => {
+            const text = "a;\nb;";
+            const expected = "a;\n\nb;";
+            const ast = parse(text);
+            const layout = new Layout({ ast, text });
+
+            const semi = layout.findNext(token => token.value === ";", layout.lastToken(ast.body[0]));
+            expect(layout.emptyLineAfter(semi)).to.be.true;
+            expect(layout.toString()).to.equal(expected);
+        });
+
+        it("should insert empty line when there's one line break and whitespace after token", () => {
+            const text = "a;\n  b;";
+            const expected = "a;\n\nb;"; // note: spaces removed by indent behavior
+            const ast = parse(text);
+            const layout = new Layout({ ast, text });
+
+            const semi = layout.findNext(token => token.value === ";", layout.lastToken(ast.body[0]));
+            expect(layout.emptyLineAfter(semi)).to.be.true;
+            expect(layout.toString()).to.equal(expected);
+        });
+
+        it("should insert empty line when no empty line after last token", () => {
+            const text = "a;\nb;";
+            const expected = "a;\nb;\n\n";
+            const ast = parse(text);
+            const layout = new Layout({ ast, text });
+
+            const semi = layout.findNext(token => token.value === ";", layout.lastToken(ast.body[1]));
+            expect(layout.emptyLineAfter(semi)).to.be.true;
+            expect(layout.toString()).to.equal(expected);
+        });
+
+        it("should not insert empty line when empty line is after last token", () => {
+            const text = "a;\nb;\n\n";
+            const expected = "a;\nb;\n\n";
+            const ast = parse(text);
+            const layout = new Layout({ ast, text });
+
+            const semi = layout.findNext(token => token.value === ";", layout.lastToken(ast.body[1]));
+            expect(layout.emptyLineAfter(semi)).to.be.false;
+            expect(layout.toString()).to.equal(expected);
+        });
+
+        it("should not insert empty line when there's an empty line after node", () => {
+            const text = "a;\n\nb;";
+            const expected = "a;\n\nb;";
+            const ast = parse(text);
+            const layout = new Layout({ ast, text });
+
+            const semi = layout.findNext(token => token.value === ";", layout.lastToken(ast.body[0]));
+            expect(layout.emptyLineAfter(semi)).to.be.false;
+            expect(layout.toString()).to.equal(expected);
+        });
+
+        it("should not insert empty line when there's an empty line with whitespace after node", () => {
+            const text = "a;\n  \nb;";
+            const expected = "a;\n\nb;"; // note: extra spaces removed automatically
+            const ast = parse(text);
+            const layout = new Layout({ ast, text });
+
+            const semi = layout.findNext(token => token.value === ";", layout.lastToken(ast.body[0]));
+            expect(layout.emptyLineAfter(semi)).to.be.false;
+            expect(layout.toString()).to.equal(expected);
+        });
+
+    });
+
     describe("noEmptyLineAfter()", () => {
 
         it("should remove empty line when found after node", () => {

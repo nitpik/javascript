@@ -779,6 +779,67 @@ export class Layout {
         return false;
     }
 
+    emptyLineAfter(tokenOrNode) {
+        let token = this.lastToken(tokenOrNode);
+
+        let next = this.tokenList.next(token);
+        if (next) {
+
+            if (this.tokenList.isLineBreak(next)) {
+
+                // There is at least one line break so see if we need more
+                next = this.tokenList.next(next);
+
+                // skip over any whitespace
+                if (this.tokenList.isWhitespace(next)) {
+                    next = this.tokenList.next(next);
+                }
+
+                if (!this.tokenList.isLineBreak(next)) {
+                    this.tokenList.insertAfter({
+                        type: "LineBreak",
+                        value: this.options.lineEndings
+                    }, token);
+
+                    return true;
+                }
+
+                return false;
+
+            } else {
+
+                // There are no line breaks after the token so insert two
+
+                this.tokenList.insertAfter({
+                    type: "LineBreak",
+                    value: this.options.lineEndings
+                }, token);
+
+                this.tokenList.insertAfter({
+                    type: "LineBreak",
+                    value: this.options.lineEndings
+                }, token);
+            }
+
+            return true;
+
+        } else {
+            this.tokenList.insertAfter({
+                type: "LineBreak",
+                value: this.options.lineEndings
+            }, token);
+
+            this.tokenList.insertAfter({
+                type: "LineBreak",
+                value: this.options.lineEndings
+            }, token);
+
+            return true;
+        }
+
+        return false;
+    }
+
     noEmptyLineAfter(tokenOrNode) {
         let token = this.lastToken(tokenOrNode);
         let maybeLineBreak = this.tokenList.next(token);
@@ -805,9 +866,13 @@ export class Layout {
                     }
 
                     this.tokenList.delete(maybeLineBreak);
+
+                    return true;
                 }
             }
         }
+
+        return false;
     }
 
     noEmptyLineBefore(tokenOrNode) {
@@ -844,15 +909,19 @@ export class Layout {
                         }
         
                         this.tokenList.delete(maybeLineBreak);
+
+                        return true;
                     }
                 } else {
                     this.tokenList.delete(maybeLineBreak);
+                    return true;
                 }
 
             }
+
+            return false;
         }
     }
- 
 
     noLineBreakAfter(tokenOrNode) {
         let token = this.lastToken(tokenOrNode);
