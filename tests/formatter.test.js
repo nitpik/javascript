@@ -34,7 +34,49 @@ const baseConfig = {
 
 describe("Formatter", () => {
 
-    xdescribe("One-offs", () => {
+    describe("Plugins", () => {
+        
+        it("should run plugin when specified", () => {
+            
+            const formatter = new Formatter({
+                options: {
+                    maxEmptyLines: 2
+                },
+                plugins: [
+
+                    // insert a line break at end of input
+                    function(context) {
+                        return {
+                            ExpressionStatement(node) {
+                                const last = context.layout.lastToken(node);
+                                const semi = context.layout.nextToken(last);
+                                context.layout.lineBreakAfter(semi);
+                            }
+                        };
+                    }
+                ]
+            });
+
+            const result = formatter.format("a;");
+            expect(result).to.deep.equal("a;\n");
+        });
+
+        it("should not run plugins when plugin array is empty", () => {
+            
+            const formatter = new Formatter({
+                options: {
+                    maxEmptyLines: 2
+                },
+                plugins: []
+            });
+
+            const result = formatter.format("a;");
+            expect(result).to.deep.equal("a;");
+        });
+
+    });
+
+    describe("One-offs", () => {
         it("should not add a semicolon after last export", () => {
             const source = `
 a(\`hello \${

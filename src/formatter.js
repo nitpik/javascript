@@ -81,9 +81,16 @@ export class Formatter {
 
         const sourceCode = new SourceCode(text, filePath, ast);
         const layout = new Layout(sourceCode, this.config.options);
-        const visitor = new TaskVisitor(parser.VisitorKeys);
-        // this.config.tasks.forEach(task => visitor.addTask(task));
-        visitor.visit(ast, new LayoutPluginContext({ sourceCode, layout }));
+
+        if (this.config.plugins) {
+            const visitor = new TaskVisitor(parser.VisitorKeys);    
+            
+            for (const plugin of this.config.plugins) {
+                visitor.addTask(plugin);
+            }
+
+            visitor.visit(ast, new LayoutPluginContext({ sourceCode, layout }));
+        }
 
         return layout.toString();
 
