@@ -146,7 +146,7 @@ describe("Layout", () => {
         });
 
     });
-
+    
     describe("emptyLineAfter()", () => {
 
         it("should insert empty line when not found after node", () => {
@@ -223,6 +223,60 @@ describe("Layout", () => {
 
             const semi = layout.findNext(token => token.value === ";", layout.lastToken(ast.body[0]));
             expect(layout.emptyLineAfter(semi)).to.be.false;
+            expect(layout.toString()).to.equal(expected);
+        });
+
+    });
+
+    describe("emptyLineBefore()", () => {
+
+        it("should insert empty line when not found before first node", () => {
+            const text = "a;";
+            const expected = "\n\na;";
+            const ast = parse(text);
+            const layout = new Layout({ ast, text });
+
+            expect(layout.emptyLineBefore(ast.body[0])).to.be.true;
+            expect(layout.toString()).to.equal(expected);
+        });
+
+        it("should insert empty line when there's one line break before node", () => {
+            const text = "a;\nb;";
+            const expected = "a;\n\nb;";
+            const ast = parse(text);
+            const layout = new Layout({ ast, text });
+
+            expect(layout.emptyLineBefore(ast.body[1])).to.be.true;
+            expect(layout.toString()).to.equal(expected);
+        });
+
+        it("should insert empty line when there's no line break before node", () => {
+            const text = "a;b;";
+            const expected = "a;\n\nb;";
+            const ast = parse(text);
+            const layout = new Layout({ ast, text });
+
+            expect(layout.emptyLineBefore(ast.body[1])).to.be.true;
+            expect(layout.toString()).to.equal(expected);
+        });
+
+        it("should not insert empty line when empty line is before last node", () => {
+            const text = "a;\n\nb;";
+            const expected = "a;\n\nb;";
+            const ast = parse(text);
+            const layout = new Layout({ ast, text });
+
+            expect(layout.emptyLineBefore(ast.body[1])).to.be.false;
+            expect(layout.toString()).to.equal(expected);
+        });
+
+        it("should not insert empty line when there's an empty line before first node", () => {
+            const text = "\n\na;";
+            const expected = "\n\na;";
+            const ast = parse(text);
+            const layout = new Layout({ ast, text });
+
+            expect(layout.emptyLineBefore(ast.body[0])).to.be.false;
             expect(layout.toString()).to.equal(expected);
         });
 

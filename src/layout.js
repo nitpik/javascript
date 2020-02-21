@@ -756,27 +756,60 @@ export class Layout {
         return false;
     }
 
-    lineBreakAfter(tokenOrNode) {
-        let token = this.lastToken(tokenOrNode);
+    emptyLineBefore(tokenOrNode) {
+        let token = this.firstToken(tokenOrNode);
+        const previousToken = this.tokenList.previous(token);
 
-        const next = this.tokenList.next(token);
-        if (next) {
-            if (!this.tokenList.isLineBreak(next)) {
-                this.tokenList.insertAfter({
+        if (previousToken) {
+
+            // if there's already a line break see if there's another
+            if (this.tokenList.isLineBreak(previousToken)) {
+
+                const earlierToken = this.tokenList.previous(previousToken);
+                
+                if (this.tokenList.isLineBreak(earlierToken)) {
+                    return false;
+                }
+
+                this.tokenList.insertBefore({
                     type: "LineBreak",
                     value: this.options.lineEndings
                 }, token);
+
+                return true;
+
+            } else if (!this.tokenList.isIndent(previousToken)) {
+                this.tokenList.insertBefore({
+                    type: "LineBreak",
+                    value: this.options.lineEndings
+                }, token);
+
+                this.tokenList.insertBefore({
+                    type: "LineBreak",
+                    value: this.options.lineEndings
+                }, token);
+
+                // trim trailing whitespace if necessary
+                if (this.options.trimTrailingWhitespace && this.tokenList.isWhitespace(previousToken)) {
+                    this.tokenList.delete(previousToken);
+                }
+
                 return true;
             }
+
         } else {
-            this.tokenList.insertAfter({
+            this.tokenList.insertBefore({
                 type: "LineBreak",
                 value: this.options.lineEndings
             }, token);
+            
+            this.tokenList.insertBefore({
+                type: "LineBreak",
+                value: this.options.lineEndings
+            }, token);
+
             return true;
         }
-
-        return false;
     }
 
     emptyLineAfter(tokenOrNode) {
@@ -837,7 +870,6 @@ export class Layout {
             return true;
         }
 
-        return false;
     }
 
     noEmptyLineAfter(tokenOrNode) {
@@ -921,6 +953,29 @@ export class Layout {
 
             return false;
         }
+    }
+
+    lineBreakAfter(tokenOrNode) {
+        let token = this.lastToken(tokenOrNode);
+
+        const next = this.tokenList.next(token);
+        if (next) {
+            if (!this.tokenList.isLineBreak(next)) {
+                this.tokenList.insertAfter({
+                    type: "LineBreak",
+                    value: this.options.lineEndings
+                }, token);
+                return true;
+            }
+        } else {
+            this.tokenList.insertAfter({
+                type: "LineBreak",
+                value: this.options.lineEndings
+            }, token);
+            return true;
+        }
+
+        return false;
     }
 
     noLineBreakAfter(tokenOrNode) {
