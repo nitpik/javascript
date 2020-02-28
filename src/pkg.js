@@ -4,5 +4,4 @@
 // Exports
 //-----------------------------------------------------------------------------
 
-export { Formatter } from "./formatter.js";
-export { Layout } from "./layout.js";
+export { Formatter as JavaScriptFormatter } from "./formatter.js";

@@ -2,7 +2,7 @@
   "name": "@nitpik/javascript",
   "version": "0.0.0",
   "description": "A pluggable JavaScript source code formatter",
-  "main": "dist/pkg.js",
+  "main": "dist/pkg.cjs.js",
   "scripts": {
     "build": "rollup -c",
     "prepublish": "npm run build",
@@ -27,7 +27,7 @@
     "Code Formatter",
     "Style Guide"
   ],
-  "author": "nzakas",
+  "author": "Nicholas C. Zakas",
   "license": "Apache-2.0",
   "dependencies": {
     "@humanwhocodes/ordered-set": "^0.2.0",
@@ -35,6 +35,7 @@
     "estraverse": "^4.2.0"
   },
   "devDependencies": {
+    "rollup-plugin-babel-minify": "^9.1.1",
     "chai": "^4.2.0",
     "eslint": "^5.8.0",
     "esm": "^3.2.25",

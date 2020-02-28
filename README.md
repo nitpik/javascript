@@ -34,10 +34,10 @@ Import into your Node.js project:
 
 ```js
 // CommonJS
-const { Formatter } = require("@nitpick/javascript");
+const { JavaScriptFormatter } = require("@nitpick/javascript");
 
 // ESM
-import { Formatter } from "@nitpick/javascript";
+import { JavaScriptFormatter } from "@nitpick/javascript";
 ```
 
 ### Deno
@@ -45,28 +45,22 @@ import { Formatter } from "@nitpick/javascript";
 Import into your Deno project:
 
 ```js
-import { Formatter } from "https://unpkg.com/@nitpick/javascript/dist/formatter.js";
+import { JavaScriptFormatter } from "https://unpkg.com/@nitpick/javascript/dist/pkg.js";
 ```
 
 ### Browser
 
-It's recommended to import the minified version to save bandwidth:
+Import into a browser script:
 
 ```js
-import { Formatter } from "https://unpkg.com/@nitpick/javascript/dist/formatter.min.js";
-```
-
-However, you can also import the unminified version for debugging purposes:
-
-```js
-import { Formatter } from "https://unpkg.com/@nitpick/javascript/dist/formatter.js";
+import { JavaScriptFormatter } from "https://unpkg.com/@nitpick/javascript/dist/pkg.js";
 ```
 
 ## API
 
-After importing, create a new instance of `Formatter`. The constructor accepts one argument which is a configuration object with the following keys:
+After importing, create a new instance of `JavaScriptFormatter`. The constructor accepts one argument which is a configuration object with the following keys:
 
-* **options** - formatting options
+* **style** - formatting options
   * **indent** - either the character to use for indents or the number of spaces (default: `4`)
   * **tabWidth** - the number of spaces to count for each tab character (defualt: `4`)
   * **lineEndings** - the line ending format, either "windows" or "unix" (defualt: `"unix"`)
@@ -82,8 +76,8 @@ After importing, create a new instance of `Formatter`. The constructor accepts o
 For example:
 
 ```js
-const Formatter = new Formatter({
-    options: {
+const formatter = new JavaScriptFormatter({
+    style: {
         indent: "\t",
         quotes: "single"
     }
