@@ -16,18 +16,6 @@ import { SourceCode } from "./util/source-code.js";
 // Data
 //-----------------------------------------------------------------------------
 
-const DEFAULT_OPTIONS = {
-    parser: espree,
-    parserOptions: {
-        ecmaVersion: 2019,
-        ecmaFeatures: {
-            jsx: true,
-            globalReturn: true
-        }
-    },
-    plugins: []
-};
-
 
 //-----------------------------------------------------------------------------
 // Helpers
@@ -71,7 +59,7 @@ export class Formatter {
             tokens: true,
             range: true,
             loc: true,
-            ecmaVersion: 2019,
+            ecmaVersion: espree.latestEcmaVersion || 2019,
             sourceType: "module",
             ecmaFeatures: {
                 jsx: true,
@@ -80,7 +68,7 @@ export class Formatter {
         });
 
         const sourceCode = new SourceCode(text, filePath, ast);
-        const layout = new Layout(sourceCode, this.config.options);
+        const layout = new Layout(sourceCode, this.config.style);
 
         if (this.config.plugins) {
             const visitor = new TaskVisitor(parser.VisitorKeys);    

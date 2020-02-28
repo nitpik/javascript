@@ -18,15 +18,6 @@ const expect = chai.expect;
 // Formatter Configs
 //-----------------------------------------------------------------------------
 
-const baseConfig = {
-    layout: {
-        options: {
-
-        },
-        tasks: [
-        ]
-    }
-};
 
 //-----------------------------------------------------------------------------
 // Tests
@@ -64,7 +55,7 @@ describe("Formatter", () => {
         it("should not run plugins when plugin array is empty", () => {
             
             const formatter = new Formatter({
-                options: {
+                style: {
                     maxEmptyLines: 2
                 },
                 plugins: []
@@ -89,8 +80,46 @@ a(\`hello \${
 }\`);
 `.trim();
             const formatter = new Formatter({
-                options: {
+                style: {
                     maxEmptyLines: 2
+                }
+            });
+            const result = formatter.format(source);
+            expect(result).to.deep.equal(expected);
+
+        });
+
+        it("should not add semicolons when semicolons is false", () => {
+            const source = "a\nb";
+            const expected = "a\nb";
+            const formatter = new Formatter({
+                style: {
+                    semicolons: false
+                }
+            });
+            const result = formatter.format(source);
+            expect(result).to.deep.equal(expected);
+
+        });
+
+        it("should add semicolons when semicolons is true", () => {
+            const source = "a\nb";
+            const expected = "a;\nb;";
+            const formatter = new Formatter({
+                style: {
+                    semicolons: true
+                }
+            });
+            const result = formatter.format(source);
+            expect(result).to.deep.equal(expected);
+
+        });
+
+        it("should add semicolons when semicolons omitted", () => {
+            const source = "a\nb";
+            const expected = "a;\nb;";
+            const formatter = new Formatter({
+                style: {
                 }
             });
             const result = formatter.format(source);
@@ -109,7 +138,7 @@ a(\`hello \${
             
             it(`Test in ${ fileName } should format correctly`, () => {
                 const formatter = new Formatter({
-                    options: JSON.parse(options)
+                    style: JSON.parse(options)
                 });
                 const result = formatter.format(source);
                 expect(result.replace(/ /g, "\u00b7")).to.deep.equal(expected.replace(/ /g, "\u00b7"));

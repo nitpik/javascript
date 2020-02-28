@@ -702,6 +702,18 @@ export class Layout {
         }
     }
     
+    noSemicolonAfter(partOrNode) {
+        let part = this.lastToken(partOrNode);
+        
+        // check to see what the next code part is
+        const next = this.tokenList.next(part);
+        if (next) {
+            if (next.value === ";") {
+                this.tokenList.delete(next);
+            }
+        }
+    }
+    
     /**
      * Ensures that there is a comma after a given token or node.
      * @param {Token|Node} tokenOrNode The token or node to look for a comma
