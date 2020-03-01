@@ -96,7 +96,7 @@ describe("Formatter", () => {
 
             });
 
-            it.only("should not remove semicolons when semicolons is false and semicolon is not followed by a line break", () => {
+            it("should not remove semicolons when semicolons is false and semicolon is not followed by a line break", () => {
                 const source = "a;b;";
                 const expected = "a; b";
                 const formatter = new Formatter({
