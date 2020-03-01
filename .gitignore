@@ -60,5 +60,5 @@ typings/
 # next.js build output
 .next
 
-# Main file
-cjs.js
+# Distributed files
+dist/
