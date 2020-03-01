@@ -9,10 +9,10 @@
 
 import { TokenList, NEWLINE } from "./util/token-list.js";
 import { Visitor, TaskVisitor } from "./visitors.js";
-import semicolonsTask from "./tasks/semicolons.js";
-import spacesTask from "./tasks/spaces.js";
-import indentsTask from "./tasks/indents.js";
-import multilineTask from "./tasks/multiline.js";
+import semicolonsTask from "./plugins/semicolons.js";
+import spacesTask from "./plugins/spaces.js";
+import indentsTask from "./plugins/indents.js";
+import multilineTask from "./plugins/multiline.js";
 import espree from "espree";
 
 //-----------------------------------------------------------------------------
@@ -820,11 +820,7 @@ export class Layout {
             }
 
         } else {
-            this.tokenList.insertBefore({
-                type: "LineBreak",
-                value: this.options.lineEndings
-            }, token);
-            
+
             this.tokenList.insertBefore({
                 type: "LineBreak",
                 value: this.options.lineEndings

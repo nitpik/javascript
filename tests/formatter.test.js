@@ -52,6 +52,43 @@ describe("Formatter", () => {
             expect(result).to.deep.equal("a;\n");
         });
 
+        it("should run multiple plugins when specified", () => {
+            
+            const formatter = new Formatter({
+                options: {
+                    maxEmptyLines: 2
+                },
+                plugins: [
+
+                    // insert a line break at end of input
+                    function(context) {
+                        return {
+                            ExpressionStatement(node) {
+                                const last = context.layout.lastToken(node);
+                                const semi = context.layout.nextToken(last);
+                                context.layout.lineBreakAfter(semi);
+                            }
+                        };
+                    },
+
+                    // ensure empty line before function declarations
+                    function(context) {
+
+                        const { layout } = context;
+
+                        return {
+                            FunctionDeclaration(node) {
+                                layout.emptyLineBefore(node);
+                            }
+                        };
+                    }
+                ]
+            });
+
+            const result = formatter.format("function foo(){\nreturn;}");
+            expect(result).to.deep.equal("\nfunction foo() {\n    return;\n}");
+        });
+
         it("should not run plugins when plugin array is empty", () => {
             
             const formatter = new Formatter({

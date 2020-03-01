@@ -232,7 +232,7 @@ describe("Layout", () => {
 
         it("should insert empty line when not found before first node", () => {
             const text = "a;";
-            const expected = "\n\na;";
+            const expected = "\na;";
             const ast = parse(text);
             const layout = new Layout({ ast, text });
 
