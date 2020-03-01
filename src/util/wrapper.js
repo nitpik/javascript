@@ -193,7 +193,7 @@ const wrappers = new Map(Object.entries({
                 layout.indentLevel(argument, indentLevel);
                 const maybeComma = layout.nextToken(layout.lastToken(argument));
                 if (maybeComma.value === ",") {
-                    layout.lineBreakAfter(maybeComma)
+                    layout.lineBreakAfter(maybeComma);
                 }
             });
         } else {
