@@ -7,7 +7,7 @@
     "build": "rollup -c",
     "prepublishOnly": "npm run build",
     "lint": "eslint src/ tests/",
-    "test": "npm run lint && nyc --include src/** mocha -r esm tests/ --recursive"
+    "test": "npm run lint && mocha -r esm tests/ --recursive"
   },
   "repository": {
     "type": "git",
