@@ -5,9 +5,9 @@
   "main": "dist/pkg.cjs.js",
   "scripts": {
     "build": "rollup -c",
-    "prepublish": "npm run build",
+    "prepublishOnly": "npm run build",
     "lint": "eslint src/ tests/",
-    "test": "nyc --include src/** mocha -r esm tests/ --recursive"
+    "test": "npm run lint && nyc --include src/** mocha -r esm tests/ --recursive"
   },
   "repository": {
     "type": "git",
@@ -40,7 +40,7 @@
     "esm": "^3.2.25",
     "mocha": "^5.2.0",
     "nyc": "^14.1.1",
-    "rollup": "^1.32.0",
+    "rollup": "^1.20.0",
     "rollup-plugin-babel-minify": "^9.1.1"
   }
 }
