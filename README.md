@@ -8,6 +8,10 @@ If you find this useful, please consider supporting my work with a [donation](ht
 
 A pluggable JavaScript source code formatter.
 
+### Status
+
+**Prototype** - Seeking feedback and not ready for production use.
+
 ### Automatic Formatting
 
 By default, Nitpik JavaScript automatically makes the following changes:
@@ -85,3 +89,53 @@ const formatter = new JavaScriptFormatter({
 
 const result = formatter.format(yourJavaScriptCode);
 ```
+
+### Plugins
+
+A plugin is a function that accepts one parameter, `context`, and returns an object specifying the types of nodes to visit in a JavaScript abstract syntax tree (AST). Here's an example that ensures there's an empty line before each function declaration:
+
+```js
+function emptyLineBeforeFunctions(context) {
+
+    const { layout } = context;
+
+    return {
+        FunctionDeclaration(node) {
+            layout.emptyLineBefore(node);
+        }
+    };
+}
+```
+
+This function uses the `context.layout` property to specify that there should be an empty line before each function declaration node. `FunctionDeclaration` is the type of node to look for, as defined by [ESTree](https://github.com/estree/estree). The node is passed as an argument to each method as the AST is traversed, so in this example, `node` represents a function declaration. You can then include the function in the `plugins` array of the configuration options:
+
+```js
+const formatter = new JavaScriptFormatter({
+    style: {
+        indent: "\t",
+        quotes: "single"
+    },
+    plugins: [
+        emptyLineBeforeFunctions
+    ]
+});
+
+const result = formatter.format(yourJavaScriptCode);
+```
+
+When the formatter is run, it will now run any specified plugins *after* a first-pass of formatting based on the `style` options. This makes it easy to define a default style and then modify it to suit your needs.
+
+All of the `style` options are implemented internally as plugins. Please see the [`src/plugins`](https://github.com/nitpik/javascript/tree/master/src/plugins) directory for examples (documentation to come later).
+
+### Developer Setup
+
+1. Ensure you have [Node.js](https://nodejs.org) 12+ installed
+2. Fork and clone this repository
+3. Run `npm install`
+4. Run `npm test` to run tests
+
+## License and Copyright
+
+This code is licensed under the Apache 2.0 License (see LICENSE for details).
+
+Copyright Human Who Codes LLC. All rights reserved.
