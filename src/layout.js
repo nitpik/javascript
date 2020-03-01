@@ -709,9 +709,19 @@ export class Layout {
         const next = this.tokenList.next(part);
         if (next) {
             if (next.value === ";") {
-                this.tokenList.delete(next);
+
+                // can only remove if there's a line break or EOF
+                const maybeLineBreak = this.tokenList.next(next);
+                
+                if (!maybeLineBreak || this.tokenList.isLineBreak(maybeLineBreak)) {
+                    this.tokenList.delete(next);
+                    return true;
+                }
+
             }
         }
+
+        return false;
     }
     
     /**

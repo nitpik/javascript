@@ -32,15 +32,15 @@
   "dependencies": {
     "@humanwhocodes/ordered-set": "^0.2.0",
     "espree": "^5.0.1",
-    "estraverse": "^4.2.0"
+    "estraverse": "^4.3.0"
   },
   "devDependencies": {
-    "rollup-plugin-babel-minify": "^9.1.1",
     "chai": "^4.2.0",
-    "eslint": "^5.8.0",
+    "eslint": "^5.16.0",
     "esm": "^3.2.25",
     "mocha": "^6.2.2",
     "nyc": "^14.1.1",
-    "rollup": "^1.15.1"
+    "rollup": "^1.32.0",
+    "rollup-plugin-babel-minify": "^9.1.1"
   }
 }

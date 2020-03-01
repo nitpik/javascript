@@ -67,6 +67,77 @@ describe("Formatter", () => {
 
     });
 
+    describe("Style Options", () => {
+
+        describe("semicolons", () => {
+            it("should not add semicolons when semicolons is false", () => {
+                const source = "a\nb";
+                const expected = "a\nb";
+                const formatter = new Formatter({
+                    style: {
+                        semicolons: false
+                    }
+                });
+                const result = formatter.format(source);
+                expect(result).to.deep.equal(expected);
+
+            });
+
+            it("should remove semicolons when semicolons is false and semicolons are present", () => {
+                const source = "a;\nb;";
+                const expected = "a\nb";
+                const formatter = new Formatter({
+                    style: {
+                        semicolons: false
+                    }
+                });
+                const result = formatter.format(source);
+                expect(result).to.deep.equal(expected);
+
+            });
+
+            it.only("should not remove semicolons when semicolons is false and semicolon is not followed by a line break", () => {
+                const source = "a;b;";
+                const expected = "a; b";
+                const formatter = new Formatter({
+                    style: {
+                        semicolons: false
+                    }
+                });
+                const result = formatter.format(source);
+                expect(result).to.deep.equal(expected);
+
+            });
+
+            it("should add semicolons when semicolons is true", () => {
+                const source = "a\nb";
+                const expected = "a;\nb;";
+                const formatter = new Formatter({
+                    style: {
+                        semicolons: true
+                    }
+                });
+                const result = formatter.format(source);
+                expect(result).to.deep.equal(expected);
+
+            });
+
+            it("should add semicolons when semicolons omitted", () => {
+                const source = "a\nb";
+                const expected = "a;\nb;";
+                const formatter = new Formatter({
+                    style: {
+                    }
+                });
+                const result = formatter.format(source);
+                expect(result).to.deep.equal(expected);
+
+            });
+
+        });
+
+    });
+
     describe("One-offs", () => {
         it("should not add a semicolon after last export", () => {
             const source = `
@@ -89,43 +160,6 @@ a(\`hello \${
 
         });
 
-        it("should not add semicolons when semicolons is false", () => {
-            const source = "a\nb";
-            const expected = "a\nb";
-            const formatter = new Formatter({
-                style: {
-                    semicolons: false
-                }
-            });
-            const result = formatter.format(source);
-            expect(result).to.deep.equal(expected);
-
-        });
-
-        it("should add semicolons when semicolons is true", () => {
-            const source = "a\nb";
-            const expected = "a;\nb;";
-            const formatter = new Formatter({
-                style: {
-                    semicolons: true
-                }
-            });
-            const result = formatter.format(source);
-            expect(result).to.deep.equal(expected);
-
-        });
-
-        it("should add semicolons when semicolons omitted", () => {
-            const source = "a\nb";
-            const expected = "a;\nb;";
-            const formatter = new Formatter({
-                style: {
-                }
-            });
-            const result = formatter.format(source);
-            expect(result).to.deep.equal(expected);
-
-        });
     });
 
     describe("fixtures", () => {

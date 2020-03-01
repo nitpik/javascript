@@ -1,4 +1,4 @@
-import minify from "rollup-plugin-babel-minify";
+// import minify from "rollup-plugin-babel-minify";
 
 export default [
     {
