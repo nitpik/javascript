@@ -41,8 +41,6 @@ function unwrapObjectOrArrayLiteral(node, {layout}) {
 function wrapObjectOrArrayLiteral(node, {layout, sourceCode }) {
     const children = node.type.startsWith("Array") ? "elements" : "properties";
     const { firstToken, lastToken } = layout.boundaryTokens(node);
-    const firstBodyToken = layout.nextTokenOrComment(firstToken);
-    const lastBodyToken = layout.previousTokenOrComment(lastToken);
     let originalIndentLevel = layout.getIndentLevel(node);
     
     if (shouldIncreaseIndentForVariableDeclaration(node, sourceCode)) {
@@ -72,9 +70,10 @@ function wrapObjectOrArrayLiteral(node, {layout, sourceCode }) {
             layout.noCommaAfter(node[children][node[children].length - 1]);
         }
     }
-
+    
+    const firstBodyToken = layout.nextTokenOrComment(firstToken);
+    const lastBodyToken = layout.previousTokenOrComment(lastToken);
     layout.indentLevelBetween(firstBodyToken, lastBodyToken, newIndentLevel);
-
 }
 
 function wrapFunction(node, { layout, sourceCode }) {

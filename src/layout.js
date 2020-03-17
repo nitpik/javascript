@@ -87,15 +87,18 @@ function indentBlockComment(part, parts, options) {
 
 }
 
-function normalizeIndents(tokenList, options) {
+function normalizeIndentsAndLineBreaks(tokenList, options) {
     const indent = options.indent;
+    const maxEmptyLines = options.maxEmptyLines;
     let indentLevel = 0;
+    let lineBreakCount = 0;
     let token = tokenList.first();
 
     while (token) {
 
         if (tokenList.isIndentIncreaser(token)) {
             indentLevel++;
+            lineBreakCount = 0;
         } else if (tokenList.isIndentDecreaser(token)) {
             
             /*
@@ -116,6 +119,8 @@ function normalizeIndents(tokenList, options) {
                     tokenList.delete(maybeIndentPart);
                 }
             }
+
+            lineBreakCount = 0;
         } else if (tokenList.isIndent(token)) {
             if (indentLevel > 0) {
                 token.value = indent.repeat(indentLevel);
@@ -124,27 +129,43 @@ function normalizeIndents(tokenList, options) {
                 tokenList.delete(token);
                 token = previousToken;
             }
-        } else if (indentLevel > 0 && tokenList.isLineBreak(token)) {
+        } else if (tokenList.isLineBreak(token)) {
             
-            /*
-             * If we made it here, it means that there's an indent missing.
-             * Any line break should be immediately followed by whitespace
-             * whenever the `indentLevel` is greater than zero. So, here
-             * we add in the missing whitespace and set it to the appropriate
-             * indent.
-             * 
-             * Note that if the next part is a line break, that means the line
-             * is empty and no extra whitespace should be added.
-             */
-            const peekPart = tokenList.next(token);
-            if (!tokenList.isWhitespace(peekPart) && !tokenList.isLineBreak(peekPart)) {
-                tokenList.insertBefore({
-                    type: "Whitespace",
-                    value: indent.repeat(indentLevel)
-                }, peekPart);
+            lineBreakCount++;
+
+            if (indentLevel > 0) {
+            
+                /*
+                 * If we made it here, it means that there's an indent missing.
+                 * Any line break should be immediately followed by whitespace
+                 * whenever the `indentLevel` is greater than zero. So, here
+                 * we add in the missing whitespace and set it to the appropriate
+                 * indent.
+                 * 
+                 * Note that if the next part is a line break, that means the line
+                 * is empty and no extra whitespace should be added.
+                 */
+                const peekPart = tokenList.next(token);
+                if (!tokenList.isWhitespace(peekPart) && !tokenList.isLineBreak(peekPart)) {
+                    tokenList.insertBefore({
+                        type: "Whitespace",
+                        value: indent.repeat(indentLevel)
+                    }, peekPart);
+                }
             }
+
+            if (lineBreakCount > maxEmptyLines + 1) {
+                const previousToken = tokenList.previous(token);
+                tokenList.delete(token);
+                token = previousToken;
+                lineBreakCount--;                
+            }
+
         } else if (tokenList.isBlockComment(token)) {
+            lineBreakCount = 0;
             indentBlockComment(token, tokenList, options);
+        } else if (!tokenList.isWhitespace(token)) {
+            lineBreakCount = 0;
         }
 
         token = tokenList.next(token);
@@ -163,7 +184,7 @@ export class Layout {
         });
 
         let tokenList = TokenList.fromAST(sourceCode.ast, sourceCode.text, this.options);
-        normalizeIndents(tokenList, this.options);
+        normalizeIndentsAndLineBreaks(tokenList, this.options);
         this.tokenList = tokenList;
         let nodeParts = new Map();
         this.nodeParts = nodeParts;
@@ -227,7 +248,6 @@ export class Layout {
         tasks.addTask(spacesTask);
         tasks.addTask(indentsTask);
         tasks.addTask(multilineTask);
-        // tasks.addTask(spacesTask);
         tasks.visit(sourceCode.ast, Object.freeze({ sourceCode, layout: this }));
     }
 
@@ -459,6 +479,8 @@ export class Layout {
      */
     indentLevelBetween(firstToken, lastToken, level) {
 
+        // TODO: This function is causing an infinite loop in layout.test.js
+
         if (typeof level !== "number" || level < 0) {
             throw new TypeError("Third argument must be a number >= 0.");
         }
@@ -495,7 +517,8 @@ export class Layout {
 
         // find remaining indents in this node and update as well
         let token = firstToken;
-        while (token !== lastToken) {
+        while (token && token !== lastToken) {
+
             if (this.tokenList.isIndent(token)) {
                 // make sure to keep relative indents correct
                 token.value = indentText + token.value.slice(indentText.length);
@@ -621,13 +644,15 @@ export class Layout {
 
         const previousToken = this.tokenList.previous(firstToken);
         if (previousToken) {
-            if (this.tokenList.isWhitespace(previousToken) && !this.tokenList.isIndent(previousToken)) {
-                previousToken.value = " ";
-            } else if (!this.tokenList.isLineBreak(previousToken)) {
-                this.tokenList.insertBefore({
-                    type: "Whitespace",
-                    value: " "
-                }, firstToken);
+            if(!this.tokenList.isIndent(previousToken)) {
+                if (this.tokenList.isWhitespace(previousToken)) {
+                    previousToken.value = " ";
+                } else if (!this.tokenList.isLineBreak(previousToken)) {
+                    this.tokenList.insertBefore({
+                        type: "Whitespace",
+                        value: " "
+                    }, firstToken);
+                }
             }
         } else {
             this.tokenList.insertBefore({

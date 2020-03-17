@@ -1,0 +1,35 @@
+{
+    "quotes": "single",
+    "indent": "\t",
+    "maxEmptyLines": 10
+}
+---
+module.exports = [
+
+
+    {
+        files: ["nitpik.config.js"],
+        formatter: new JavaScriptFormatter({
+            style: {
+                quotes: "single",
+                indent: "\t"
+            }
+        })
+    }
+
+
+];
+---
+module.exports = [
+
+	{
+		files: ['nitpik.config.js'],
+		formatter: new JavaScriptFormatter({
+			style: {
+				quotes: 'single',
+				indent: '\t'	
+			}
+		})
+	}
+
+];

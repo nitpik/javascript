@@ -10,6 +10,7 @@
 import { Layout } from "../src/layout.js";
 import espree from "espree";
 import chai from "chai";
+import { SourceCode } from "../src/util/source-code.js";
 
 const expect = chai.expect;
 
@@ -27,6 +28,55 @@ function parse(text) {
 
 describe("Layout", () => {
 
+    describe("empty lines", () =>{
+        it("should remove empty line when the empty line has no whitespace", () => {
+            const text = "const a = {\n\n\n    a: 5,\n    b: 6,\n};";
+            const expected = "const a = {\n\n    a: 5,\n    b: 6,\n};";
+            const ast = parse(text);
+            const sourceCode = new SourceCode(text, "foo.js", ast);
+            const layout = new Layout(sourceCode, {
+                trailingCommas: true
+            });
+
+            expect(layout.toString()).to.equal(expected);
+        });
+
+        it("should remove empty line when the empty line has whitespace", () => {
+            const text = "const a = {\n\n    \n    a: 5,\n    b: 6,\n};";
+            const expected = "const a = {\n\n    a: 5,\n    b: 6,\n};";
+            const ast = parse(text);
+            const sourceCode = new SourceCode(text, "foo.js", ast);
+            const layout = new Layout(sourceCode, {
+                trailingCommas: true
+            });
+
+            expect(layout.toString()).to.equal(expected);
+        });
+
+        it("should remove multiple empty lines when the empty lines have whitespace", () => {
+            const text = "const a = {\n\n    \n    \n    a: 5,\n    b: 6,\n};";
+            const expected = "const a = {\n\n    a: 5,\n    b: 6,\n};";
+            const ast = parse(text);
+            const sourceCode = new SourceCode(text, "foo.js", ast);
+            const layout = new Layout(sourceCode, {
+                trailingCommas: true
+            });
+
+            expect(layout.toString()).to.equal(expected);
+        });
+
+        it("should remove multiple empty lines when the empty lines have whitespace", () => {
+            const text = "const a = {\n\n    \n    \n    a: 5,\n    b: 6,\n};";
+            const expected = "const a = {\n\n    a: 5,\n    b: 6,\n};";
+            const ast = parse(text);
+            const sourceCode = new SourceCode(text, "foo.js", ast);
+            const layout = new Layout(sourceCode, {
+                trailingCommas: true
+            });
+
+            expect(layout.toString()).to.equal(expected);
+        });
+    });
 
     describe("Indents", () => {
 

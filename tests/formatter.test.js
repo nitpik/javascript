@@ -173,6 +173,33 @@ describe("Formatter", () => {
 
         });
 
+        describe("maxEmptyLines", () => {
+            it("should remove extra empty lines when maxEmptyLines is 1", () => {
+                const source = "a;\n\n\nb;";
+                const expected = "a;\n\nb;";
+                const formatter = new Formatter({
+                    style: {
+                        maxEmptyLines: 1
+                    }
+                });
+                const result = formatter.format(source);
+                expect(result).to.deep.equal(expected);
+            });
+
+            it("should remove extra empty lines when the lines have whitespace and maxEmptyLines is 1", () => {
+                const source = "if (f) {\na;\n\n    \nb;\n}";
+                const expected = "if (f) {\n    a;\n\n    b;\n}";
+                const formatter = new Formatter({
+                    style: {
+                        maxEmptyLines: 1
+                    }
+                });
+                const result = formatter.format(source);
+                expect(result).to.deep.equal(expected);
+            });
+
+        });
+
     });
 
     describe("One-offs", () => {
@@ -207,13 +234,16 @@ a(\`hello \${
             const contents = fs.readFileSync(filePath, "utf8").replace(/\r/g, "");
             const [ options, source, expected ] = contents.trim().split("\n---\n");
             
-            it(`Test in ${ fileName } should format correctly`, () => {
-                const formatter = new Formatter({
-                    style: JSON.parse(options)
+            if (fileName.includes("config.txt")) {
+
+                it(`Test in ${ fileName } should format correctly`, () => {
+                    const formatter = new Formatter({
+                        style: JSON.parse(options)
+                    });
+                    const result = formatter.format(source);
+                    expect(result.replace(/ /g, "\u00b7")).to.deep.equal(expected.replace(/ /g, "\u00b7"));
                 });
-                const result = formatter.format(source);
-                expect(result.replace(/ /g, "\u00b7")).to.deep.equal(expected.replace(/ /g, "\u00b7"));
-            });
+            }
         });
     });
 

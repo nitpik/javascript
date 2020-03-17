@@ -28,9 +28,9 @@ class PluginContext {
 }
 
 class LayoutPluginContext extends PluginContext {
-    constructor({ ast, text, layout }) {
-        super(text);
-        this.ast = ast;
+    constructor({ sourceCode, layout }) {
+        super(sourceCode.text);
+        this.sourceCode = sourceCode;
         this.layout = layout;
     }
 }
