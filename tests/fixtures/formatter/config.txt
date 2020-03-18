@@ -1,7 +1,7 @@
 {
     "quotes": "single",
     "indent": "\t",
-    "maxEmptyLines": 10
+    "maxEmptyLines": 1
 }
 ---
 module.exports = [
@@ -27,7 +27,7 @@ module.exports = [
 		formatter: new JavaScriptFormatter({
 			style: {
 				quotes: 'single',
-				indent: '\t'	
+				indent: '\t'
 			}
 		})
 	}
