@@ -2,6 +2,8 @@
 
 by [Nicholas C. Zakas](https://humanwhocodes.com)
 
+![Node CI](https://github.com/nitpik/javascript/workflows/Node%20CI/badge.svg)
+
 If you find this useful, please consider supporting my work with a [donation](https://humanwhocodes.com/donate).
 
 ## Description
