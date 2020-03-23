@@ -1,0 +1,13 @@
+{
+    "maxLineLength": 80,
+    "trailingCommas": true,
+    "indent": "\t"
+}
+---
+node.forEach(inputFile => {
+    inputFile = "packages/core/" + inputFile;    
+});
+---
+node.forEach(inputFile => {
+	inputFile = "packages/core/" + inputFile;
+});

@@ -312,7 +312,7 @@ export class TokenList extends OrderedSet {
     delete(part) {
         super.delete(part);
         if (part.range) {
-            this[rangeStarts].set(part.range[0], part);
+            this[rangeStarts].delete(part.range[0]);
         }
     }
 

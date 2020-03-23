@@ -1,0 +1,3 @@
+node.forEach(inputFile => {
+	inputFile.output.file = "packages/core/" + inputFile.output.file;        
+});

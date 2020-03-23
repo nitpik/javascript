@@ -20,7 +20,7 @@ const expect = chai.expect;
 //-----------------------------------------------------------------------------
 
 function parse(text) {
-    return espree.parse(text, { range: true, tokens: true, comment: true, ecmaVersion: 2019 });
+    return espree.parse(text, { range: true, tokens: true, comment: true, ecmaVersion: 2019, sourceType:"module" });
 }
 
 //-----------------------------------------------------------------------------
@@ -28,6 +28,50 @@ function parse(text) {
 //-----------------------------------------------------------------------------
 
 describe("TokenList", () => {
+
+    describe("add()", () => {
+
+        it("should add two tokens in a row with next()/previous() links", () => {
+            const tokenList = new TokenList();
+            const token1 = {
+                type: "Foo",
+                range: [0, 5]
+            };
+            const token2 = {
+                type: "Bar",
+                range: [5, 10]
+            };
+
+            tokenList.add(token1);
+            tokenList.add(token2);
+
+            expect(tokenList.first()).to.equal(token1);
+            expect(tokenList.next(tokenList.first())).to.equal(token2);
+            expect(tokenList.last()).to.equal(token2);
+            expect(tokenList.previous(tokenList.last())).to.equal(token1);
+        });
+    });
+
+    describe("delete()", () => {
+
+        it("should delete token and remove from range maps when called", () => {
+            const tokenList = new TokenList();
+            const token1 = {
+                type: "Foo",
+                range: [0, 5]
+            };
+            const token2 = {
+                type: "Bar",
+                range: [5, 10]
+            };
+
+            tokenList.add(token1);
+            tokenList.add(token2);
+            tokenList.delete(token1);
+
+            expect(tokenList.getByRangeStart(0)).to.be.undefined;
+        });
+    });
 
     describe("fixtures", () => {
         const tokenListFixturesPath = "./tests/fixtures/token-list";
