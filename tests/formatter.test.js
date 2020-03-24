@@ -234,16 +234,13 @@ a(\`hello \${
             const contents = fs.readFileSync(filePath, "utf8").replace(/\r/g, "");
             const [ options, source, expected ] = contents.trim().split("\n---\n");
             
-            if (fileName.includes("config.txt")) {
-
-                it(`Test in ${ fileName } should format correctly`, () => {
-                    const formatter = new Formatter({
-                        style: JSON.parse(options)
-                    });
-                    const result = formatter.format(source);
-                    expect(result.replace(/ /g, "\u00b7")).to.deep.equal(expected.replace(/ /g, "\u00b7"));
+            it(`Test in ${ fileName } should format correctly`, () => {
+                const formatter = new Formatter({
+                    style: JSON.parse(options)
                 });
-            }
+                const result = formatter.format(source);
+                expect(result.replace(/ /g, "\u00b7")).to.deep.equal(expected.replace(/ /g, "\u00b7"));
+            });
         });
     });
 
