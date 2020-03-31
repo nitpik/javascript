@@ -47,7 +47,8 @@ describe("Layout", () => {
             const ast = parse(text);
             const sourceCode = new SourceCode(text, "foo.js", ast);
             const layout = new Layout(sourceCode, {
-                trailingCommas: true
+                trailingCommas: true,
+                maxEmptyLines: 1
             });
 
             expect(layout.toString()).to.equal(expected);

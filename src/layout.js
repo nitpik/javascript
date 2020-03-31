@@ -100,7 +100,7 @@ function normalizeIndentsAndLineBreaks(tokenList, options) {
             indentLevel++;
             lineBreakCount = 0;
         } else if (tokenList.isIndentDecreaser(token)) {
-            
+
             /*
              * The tricky part about decreasing indent is that the token
              * triggering the indent decrease will already be indented at the
@@ -121,6 +121,7 @@ function normalizeIndentsAndLineBreaks(tokenList, options) {
             }
 
             lineBreakCount = 0;
+
         } else if (tokenList.isIndent(token)) {
             if (indentLevel > 0) {
                 token.value = indent.repeat(indentLevel);
@@ -155,8 +156,15 @@ function normalizeIndentsAndLineBreaks(tokenList, options) {
             }
 
             if (lineBreakCount > maxEmptyLines + 1) {
-                const previousToken = tokenList.previous(token);
+                let previousToken = tokenList.previous(token);
                 tokenList.delete(token);
+
+                if (tokenList.isWhitespace(previousToken)) {
+                    const whitespaceToken = previousToken;
+                    previousToken = tokenList.previous(whitespaceToken);
+                    tokenList.delete(whitespaceToken);
+                }
+
                 token = previousToken;
                 lineBreakCount--;                
             }
@@ -166,6 +174,26 @@ function normalizeIndentsAndLineBreaks(tokenList, options) {
             indentBlockComment(token, tokenList, options);
         } else if (!tokenList.isWhitespace(token)) {
             lineBreakCount = 0;
+        }
+
+        token = tokenList.next(token);
+    }
+
+    // console.log(JSON.stringify([...tokenList], null, 4))
+}
+
+function trimTrailingWhitespace(tokenList) {
+    let token = tokenList.first();
+
+    while (token) {
+        
+        if (tokenList.isLineBreak(token)) {
+            
+            const previous = tokenList.previous(token);
+            if (tokenList.isWhitespace(previous)) {
+                tokenList.delete(previous);
+            }
+
         }
 
         token = tokenList.next(token);
@@ -242,6 +270,17 @@ export class Layout {
                 lastToken 
             });
         });
+
+        /*
+         * We need to trim trailing whitespace after all of the rest of the
+         * processing is done in order to ensure that we've made a correct
+         * map of nodes to tokens. Removing the whitespace earlier can result
+         * in tokens missing at the end-range of nodes, which messes up the
+         * mapping.
+         */
+        if (this.options.trimTrailingWhitespace) {
+            trimTrailingWhitespace(tokenList);
+        }
 
         const tasks = new TaskVisitor(espree.VisitorKeys);
         tasks.addTask(semicolonsTask);
@@ -479,14 +518,12 @@ export class Layout {
      */
     indentLevelBetween(firstToken, lastToken, level) {
 
-        // TODO: This function is causing an infinite loop in layout.test.js
-
         if (typeof level !== "number" || level < 0) {
             throw new TypeError("Third argument must be a number >= 0.");
         }
 
         const indent = this.getIndent(firstToken);
-
+        
         /*
          * If the token or node is not the first syntax on a line then we
          * should not indent.
@@ -518,10 +555,27 @@ export class Layout {
         // find remaining indents in this node and update as well
         let token = firstToken;
         while (token && token !== lastToken) {
-
+            
             if (this.tokenList.isIndent(token)) {
                 // make sure to keep relative indents correct
                 token.value = indentText + token.value.slice(indentText.length);
+            } else if (this.tokenList.isLineBreak(token)) {
+
+                /*
+                 * It's possible a node that should be indented doesn't already
+                 * have an indent. The only way to know is to check to see if the
+                 * next node after a line break is whitespace. If not, then create
+                 * one. The created indent will be adjusted in the first part of this
+                 * while loop.
+                 */
+                const maybeIndent = this.tokenList.next(token);
+                if (!this.tokenList.isIndent(maybeIndent) && !this.tokenList.isLineBreak(maybeIndent)) {
+                    this.tokenList.insertAfter({
+                        type: "Whitespace",
+                        value: ""
+                    }, token);
+                }
+
             }
             token = this.tokenList.next(token);
         }

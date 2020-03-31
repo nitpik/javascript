@@ -137,6 +137,14 @@ baz()
         ]
     },
     {
+        "type": "Whitespace",
+        "value": "    ",
+        "range": [
+            29,
+            33
+        ]
+    },
+    {
         "type": "LineBreak",
         "value": "\n",
         "range": [

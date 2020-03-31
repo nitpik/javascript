@@ -234,6 +234,8 @@ a(\`hello \${
             const contents = fs.readFileSync(filePath, "utf8").replace(/\r/g, "");
             const [ options, source, expected ] = contents.trim().split("\n---\n");
             
+
+            // if (!fileName.includes("object-literals")) return;
             it(`Test in ${ fileName } should format correctly`, () => {
                 const formatter = new Formatter({
                     style: JSON.parse(options)

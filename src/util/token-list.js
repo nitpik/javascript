@@ -118,7 +118,6 @@ function buildTokenList(list, ast, text, options) {
     const { tokens, comments } = ast;
     let commentIndex = 0, tokenIndex = 0;
     let index = 0;
-    let lineBreakCount = 0;
 
     while (index < text.length) {
         let comment = comments[commentIndex];
@@ -140,7 +139,6 @@ function buildTokenList(list, ast, text, options) {
                 list[originalIndents].set(newPart, previousPart.value);
             }
 
-            lineBreakCount = 0;
             continue;
         }
 
@@ -159,7 +157,6 @@ function buildTokenList(list, ast, text, options) {
             list.add(newToken);
             index = newToken.range[1];
             tokenIndex++;
-            lineBreakCount = 0;
             continue;
         }
 
@@ -170,12 +167,12 @@ function buildTokenList(list, ast, text, options) {
             if (NEWLINE.test(c)) {
 
                 // if there is whitespace before LineBreak, delete it
-                if (options.trimTrailingWhitespace) {
-                    const previous = list.last();
-                    if (previous && list.isWhitespace(previous)) {
-                        list.delete(previous);
-                    }
-                }
+                // if (options.trimTrailingWhitespace) {
+                //     const previous = list.last();
+                //     if (previous && list.isWhitespace(previous)) {
+                //         list.delete(previous);
+                //     }
+                // }
 
                 let startIndex = index;
 
@@ -185,16 +182,13 @@ function buildTokenList(list, ast, text, options) {
                     }
                 }
 
-                if (lineBreakCount < options.maxEmptyLines + 1) {
-                    list.add({
-                        type: "LineBreak",
-                        value: options.lineEndings,
-                        range: [startIndex, index]
-                    });
-                }
+                list.add({
+                    type: "LineBreak",
+                    value: options.lineEndings,
+                    range: [startIndex, index]
+                });
 
                 index++;
-                lineBreakCount++;
                 continue;
             }
 
