@@ -7,7 +7,15 @@
 node.forEach(inputFile => {
     inputFile = "packages/core/" + inputFile;    
 });
+
+if (foo) {
+    bar(); 
+}
 ---
 node.forEach(inputFile => {
 	inputFile = "packages/core/" + inputFile;
 });
+
+if (foo) {
+	bar();
+}

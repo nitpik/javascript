@@ -170,12 +170,12 @@ function buildTokenList(list, ast, text, options) {
             if (NEWLINE.test(c)) {
 
                 // if there is whitespace before LineBreak, delete it
-                if (options.trimTrailingWhitespace) {
-                    const previous = list.last();
-                    if (previous && list.isWhitespace(previous)) {
-                        list.delete(previous);
-                    }
-                }
+                // if (options.trimTrailingWhitespace) {
+                //     const previous = list.last();
+                //     if (previous && list.isWhitespace(previous)) {
+                //         list.delete(previous);
+                //     }
+                // }
 
                 let startIndex = index;
 

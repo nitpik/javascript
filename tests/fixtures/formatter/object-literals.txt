@@ -15,43 +15,6 @@ module.exports = {
         return "yo"
     },
 }
-
-
-
-
-    let name = "Nicholas";
-const x = {
-    name,
-    [ baz ] : "boom",
-    *doSomething  () {
-        // noop
-    },
-    async   doSomethingElse( ) {
-        await foo()
-    }
-}
-
-const z = {  };
-const zz = {
-
-  };
-
-const zzz = {
-// hi
-}
-
-const abc = { name: "Nicholas", sport: "basketball", found:true, lost:false, count:123}
-
-if (foo) {
-const abc = { name: "Greg", sport: "basketball", found:true, lost:false, count:123}
-}
-
-let foom ={bar:1 ,baz :2};
-
-foo({
-...DEFAULT_OPTIONS,
-...options
-});
 ---
 module.exports = {
     colors: ["red", "green", "blue"],
@@ -70,48 +33,3 @@ module.exports = {
         return "yo";
     },
 };
-
-
-let name = "Nicholas";
-const x = {
-    name,
-    [baz]: "boom",
-    *doSomething() {
-        // noop
-    },
-    async doSomethingElse() {
-        await foo();
-    },
-};
-
-const z = {};
-const zz = {};
-
-const zzz = {
-    // hi
-};
-
-const abc = {
-    name: "Nicholas",
-    sport: "basketball",
-    found: true,
-    lost: false,
-    count: 123,
-};
-
-if (foo) {
-    const abc = {
-        name: "Greg",
-        sport: "basketball",
-        found: true,
-        lost: false,
-        count: 123,
-    };
-}
-
-let foom = { bar: 1, baz: 2 };
-
-foo({
-    ...DEFAULT_OPTIONS,
-    ...options,
-});

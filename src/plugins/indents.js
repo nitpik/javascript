@@ -1,5 +1,5 @@
 /**
- * @fileoverview A task to automatically adjust spaces as needed.
+ * @fileoverview A task to automatically adjust indents as needed.
  * @author Nicholas C. Zakas
  */
 
