@@ -1,4 +1,7 @@
 // import minify from "rollup-plugin-babel-minify";
+import resolve from "rollup-plugin-node-resolve";
+import commonjs from "rollup-plugin-commonjs";
+import json from "rollup-plugin-json";
 
 export default [
     {
@@ -7,12 +10,18 @@ export default [
             {
                 file: "dist/pkg.cjs.js",
                 format: "cjs"
-            },
-            {
-                file: "dist/pkg.js",
-                format: "esm"
             }
         ]
+    },
+    {
+        input: "src/pkg.js",
+        output: [
+            {
+                file: "dist/pkg.js",
+                format: "esm",
+            }
+        ],
+        plugins: [resolve(), commonjs(), json()]
     },
 
     // Commenting out due to babel-minify bug
