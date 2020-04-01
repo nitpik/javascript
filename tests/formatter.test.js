@@ -235,7 +235,7 @@ a(\`hello \${
             const [ options, source, expected ] = contents.trim().split("\n---\n");
             
 
-            // if (!fileName.includes("object-literals")) return;
+            // if (!fileName.includes("multiline-function")) return;
             it(`Test in ${ fileName } should format correctly`, () => {
                 const formatter = new Formatter({
                     style: JSON.parse(options)

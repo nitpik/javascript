@@ -100,7 +100,7 @@ function normalizeIndentsAndLineBreaks(tokenList, options) {
             indentLevel++;
             lineBreakCount = 0;
         } else if (tokenList.isIndentDecreaser(token)) {
-
+            
             /*
              * The tricky part about decreasing indent is that the token
              * triggering the indent decrease will already be indented at the
@@ -750,7 +750,7 @@ export class Layout {
         let part = this.firstToken(partOrNode);
 
         const previous = this.tokenList.previous(part);
-        if (previous && this.tokenList.isWhitespace(previous)) {
+        if (previous && this.tokenList.isWhitespace(previous) && !this.tokenList.isIndent(previous)) {
             this.tokenList.delete(previous);
         }
     }

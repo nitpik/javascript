@@ -1,0 +1,17 @@
+{
+    "maxLineLength": 80,
+    "trailingCommas": true,
+    "indent": "\t"
+}
+---
+function foo() {
+return Promise.all(
+	filePaths.map(filePath =>    this.formatFile(filePath))  
+    );
+}
+---
+function foo() {
+	return Promise.all(
+		filePaths.map(filePath => this.formatFile(filePath))
+	);
+}
