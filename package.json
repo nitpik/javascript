@@ -31,7 +31,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@humanwhocodes/ordered-set": "^0.2.0",
-    "espree": "^5.0.1",
+    "espree": "^6.2.1",
     "estraverse": "^4.3.0"
   },
   "devDependencies": {
