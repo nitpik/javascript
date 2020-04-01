@@ -52,9 +52,18 @@ export class Formatter {
      * @returns {string} The formatted source code. 
      */
     format(text, filePath = "<text>") {
-        // TODO: Read parser from config
+
+        let hashbang = text.startsWith("#!");
+        let textToParse = text;
+
+        // replace hashbang if necessary
+        if (hashbang) {
+            textToParse = "//" + text.slice(2);
+        }
+
+        // TODO: Read parser from config?
         const parser = espree;
-        let ast = parser.parse(text, {
+        let ast = parser.parse(textToParse, {
             comment: true,
             tokens: true,
             range: true,
@@ -66,6 +75,11 @@ export class Formatter {
                 globalReturn: true
             }
         });
+
+        if (hashbang) {
+            ast.comments[0].type = "Hashbang";
+            ast.comments[0].value = "#!" + ast.comments[0].value.slice(2);
+        }
 
         const sourceCode = new SourceCode(text, filePath, ast);
         const layout = new Layout(sourceCode, this.config.style);

@@ -1,0 +1,12 @@
+{
+    "maxLineLength": 80
+}
+---
+#!/usr/bin/env node
+
+
+let   bar= 6;
+---
+#!/usr/bin/env node
+
+let bar = 6;

@@ -47,7 +47,8 @@ const SYNTAX_TOKENS = new Set([
 const NON_WHITESPACE_TOKENS = new Set([
     ...SYNTAX_TOKENS,
     "LineComment",
-    "BlockComment"
+    "BlockComment",
+    "HashBangComment"
 ]);
 
 const WHITESPACE = /\s/;
@@ -113,6 +114,19 @@ function convertString(value, quotes) {
     return quotes + newValue + quotes;
 }
 
+function getCommentType(comment) {
+
+    if (comment.type === "Line") {
+        return "LineComment";
+    }
+
+    if (comment.type === "Block") {
+        return "BlockComment";
+    }
+
+    return "HashbangComment";
+}
+
 
 function buildTokenList(list, ast, text, options) {
     const { tokens, comments } = ast;
@@ -126,7 +140,7 @@ function buildTokenList(list, ast, text, options) {
         // next part is a comment
         if (comment && comment.range[0] === index) {
             const newPart = {
-                type: comment.type === "Line" ? "LineComment" : "BlockComment",
+                type: getCommentType(comment),
                 value: text.slice(comment.range[0], comment.range[1]),
                 range: comment.range
             };
