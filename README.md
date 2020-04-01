@@ -1,4 +1,4 @@
-# Nitpik JavaScript
+# Nitpik JavaScript Formatter
 
 by [Nicholas C. Zakas](https://humanwhocodes.com)
 
