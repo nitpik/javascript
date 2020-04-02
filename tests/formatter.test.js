@@ -86,14 +86,15 @@ describe("Formatter", () => {
             });
 
             const result = formatter.format("function foo(){\nreturn;}");
-            expect(result).to.deep.equal("\nfunction foo() {\n    return;\n}");
+            expect(result).to.deep.equal("\nfunction foo() {\n    return;\n}\n");
         });
 
         it("should not run plugins when plugin array is empty", () => {
             
             const formatter = new Formatter({
                 style: {
-                    maxEmptyLines: 2
+                    maxEmptyLines: 2,
+                    emptyLastLine: false
                 },
                 plugins: []
             });
@@ -109,7 +110,7 @@ describe("Formatter", () => {
         describe("semicolons", () => {
             it("should not add semicolons when semicolons is false", () => {
                 const source = "a\nb";
-                const expected = "a\nb";
+                const expected = "a\nb\n";
                 const formatter = new Formatter({
                     style: {
                         semicolons: false
@@ -122,7 +123,7 @@ describe("Formatter", () => {
 
             it("should remove semicolons when semicolons is false and semicolons are present", () => {
                 const source = "a;\nb;";
-                const expected = "a\nb";
+                const expected = "a\nb\n";
                 const formatter = new Formatter({
                     style: {
                         semicolons: false
@@ -135,7 +136,7 @@ describe("Formatter", () => {
 
             it("should not remove semicolons when semicolons is false and semicolon is not followed by a line break", () => {
                 const source = "a;b;";
-                const expected = "a; b";
+                const expected = "a; b\n";
                 const formatter = new Formatter({
                     style: {
                         semicolons: false
@@ -148,7 +149,7 @@ describe("Formatter", () => {
 
             it("should add semicolons when semicolons is true", () => {
                 const source = "a\nb";
-                const expected = "a;\nb;";
+                const expected = "a;\nb;\n";
                 const formatter = new Formatter({
                     style: {
                         semicolons: true
@@ -161,7 +162,7 @@ describe("Formatter", () => {
 
             it("should add semicolons when semicolons omitted", () => {
                 const source = "a\nb";
-                const expected = "a;\nb;";
+                const expected = "a;\nb;\n";
                 const formatter = new Formatter({
                     style: {
                     }
@@ -176,7 +177,7 @@ describe("Formatter", () => {
         describe("maxEmptyLines", () => {
             it("should remove extra empty lines when maxEmptyLines is 1", () => {
                 const source = "a;\n\n\nb;";
-                const expected = "a;\n\nb;";
+                const expected = "a;\n\nb;\n";
                 const formatter = new Formatter({
                     style: {
                         maxEmptyLines: 1
@@ -188,7 +189,7 @@ describe("Formatter", () => {
 
             it("should remove extra empty lines when the lines have whitespace and maxEmptyLines is 1", () => {
                 const source = "if (f) {\na;\n\n    \nb;\n}";
-                const expected = "if (f) {\n    a;\n\n    b;\n}";
+                const expected = "if (f) {\n    a;\n\n    b;\n}\n";
                 const formatter = new Formatter({
                     style: {
                         maxEmptyLines: 1
@@ -216,7 +217,8 @@ a(\`hello \${
 `.trim();
             const formatter = new Formatter({
                 style: {
-                    maxEmptyLines: 2
+                    maxEmptyLines: 2,
+                    emptyLastLine: false
                 }
             });
             const result = formatter.format(source);
@@ -232,14 +234,15 @@ a(\`hello \${
             
             const filePath = path.join(formatterFixturesPath, fileName);
             const contents = fs.readFileSync(filePath, "utf8").replace(/\r/g, "");
-            const [ options, source, expected ] = contents.trim().split("\n---\n");
+            const [ options, source, expected ] = contents.split("\n---\n");
             
 
-            // if (!fileName.includes("multiline-function")) return;
+            // if (!fileName.includes("operators")) return;
             it(`Test in ${ fileName } should format correctly`, () => {
                 const formatter = new Formatter({
                     style: JSON.parse(options)
                 });
+
                 const result = formatter.format(source);
                 expect(result.replace(/ /g, "\u00b7")).to.deep.equal(expected.replace(/ /g, "\u00b7"));
             });

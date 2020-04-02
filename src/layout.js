@@ -40,7 +40,8 @@ const DEFAULT_OPTIONS = {
     trailingCommas: false,
     maxEmptyLines: 1,
     maxLineLength: Infinity,
-    trimTrailingWhitespace: true
+    trimTrailingWhitespace: true,
+    emptyLastLine: true
 };
 
 //-----------------------------------------------------------------------------
@@ -179,7 +180,18 @@ function normalizeIndentsAndLineBreaks(tokenList, options) {
         token = tokenList.next(token);
     }
 
-    // console.log(JSON.stringify([...tokenList], null, 4))
+}
+
+function ensureEmptyLastLine(tokenList, options) {
+    let lastToken = tokenList.last();
+    if (tokenList.isIndent(lastToken)) {
+        tokenList.delete(lastToken);
+    } else if (!tokenList.isLineBreak(lastToken)) {
+        tokenList.add({
+            type: "LineBreak",
+            value: options.lineEndings
+        });
+    }
 }
 
 function trimTrailingWhitespace(tokenList) {
@@ -288,6 +300,11 @@ export class Layout {
         tasks.addTask(indentsTask);
         tasks.addTask(multilineTask);
         tasks.visit(sourceCode.ast, Object.freeze({ sourceCode, layout: this }));
+
+        // now ensure empty last line
+        if (this.options.emptyLastLine) {
+            ensureEmptyLastLine(tokenList, this.options);
+        }
     }
 
     firstToken(tokenOrNode) {
@@ -790,8 +807,12 @@ export class Layout {
                 }, part);
                 return true;
             }
-        } else {
-            // we are at the end of the file, so just add the semicolon
+        } else if (!this.tokenList.isLineBreak(part)) {
+
+            /*
+             * We are at the end of the file, so just add the semicolon
+             * but only if the last part of the file isn't a line break.
+             */
             this.tokenList.add({
                 type: "Punctuator",
                 value: ";"

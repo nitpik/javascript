@@ -22,62 +22,110 @@ function parse(text) {
     return espree.parse(text, { range: true, tokens: true, comment: true, ecmaVersion: 2019, sourceType: "module" });
 }
 
+const defaultOptions = {
+    emptyLastLine: false
+};
+
+function createLayout(sourceCode, options = {}) {
+    return new Layout(sourceCode, {
+        ...defaultOptions,
+        ...options
+    });
+}
+
+function parseAndCreateLayout(text, options = {}) {
+    const ast = parse(text);
+    const sourceCode = new SourceCode(text, "foo.js", ast);
+    return createLayout(sourceCode, options);
+}
+
 //-----------------------------------------------------------------------------
 // Tests
 //-----------------------------------------------------------------------------
 
 describe("Layout", () => {
 
-    describe("empty lines", () =>{
-        it("should remove empty line when the empty line has no whitespace", () => {
-            const text = "const a = {\n\n\n    a: 5,\n    b: 6,\n};";
-            const expected = "const a = {\n\n    a: 5,\n    b: 6,\n};";
-            const ast = parse(text);
-            const sourceCode = new SourceCode(text, "foo.js", ast);
-            const layout = new Layout(sourceCode, {
-                trailingCommas: true
+    describe("Options", () => {
+        describe("emptyLastLine", () => {
+
+            it("should remove trailing whitespace on last line", () => {
+                const text = "const a = {\n\n\n    a: 5,\n    b: 6,\n};\n    ";
+                const expected = "const a = {\n\n    a: 5,\n    b: 6\n};\n";
+                const layout = parseAndCreateLayout(text, {
+                    emptyLastLine: true
+                });
+
+                expect(layout.toString()).to.equal(expected);
+
             });
 
-            expect(layout.toString()).to.equal(expected);
+            it("should not make changes when the last line is empty", () => {
+                const text = "const a = {\n\n\n    a: 5,\n    b: 6,\n};\n";
+                const expected = "const a = {\n\n    a: 5,\n    b: 6\n};\n";
+                const layout = parseAndCreateLayout(text, {
+                    emptyLastLine: true
+                });
+
+                expect(layout.toString()).to.equal(expected);
+
+            });
+
+            it("should add a line break if the last line is not empty", () => {
+                const text = "const a = 5;";
+                const expected = "const a = 5;\n";
+                const layout = parseAndCreateLayout(text, {
+                    emptyLastLine: true
+                });
+
+                expect(layout.toString()).to.equal(expected);
+
+            });
+
         });
-
-        it("should remove empty line when the empty line has whitespace", () => {
-            const text = "const a = {\n\n    \n    a: 5,\n    b: 6,\n};";
-            const expected = "const a = {\n\n    a: 5,\n    b: 6,\n};";
-            const ast = parse(text);
-            const sourceCode = new SourceCode(text, "foo.js", ast);
-            const layout = new Layout(sourceCode, {
-                trailingCommas: true,
-                maxEmptyLines: 1
+        describe("maxEmptyLines", () =>{
+            it("should remove empty line when the empty line has no whitespace", () => {
+                const text = "const a = {\n\n\n    a: 5,\n    b: 6,\n};";
+                const expected = "const a = {\n\n    a: 5,\n    b: 6,\n};";
+                const layout = parseAndCreateLayout(text, {
+                    trailingCommas: true
+                });
+    
+                expect(layout.toString()).to.equal(expected);
             });
-
-            expect(layout.toString()).to.equal(expected);
-        });
-
-        it("should remove multiple empty lines when the empty lines have whitespace", () => {
-            const text = "const a = {\n\n    \n    \n    a: 5,\n    b: 6,\n};";
-            const expected = "const a = {\n\n    a: 5,\n    b: 6,\n};";
-            const ast = parse(text);
-            const sourceCode = new SourceCode(text, "foo.js", ast);
-            const layout = new Layout(sourceCode, {
-                trailingCommas: true
+    
+            it("should remove empty line when the empty line has whitespace", () => {
+                const text = "const a = {\n\n    \n    a: 5,\n    b: 6,\n};";
+                const expected = "const a = {\n\n    a: 5,\n    b: 6,\n};";
+                const layout = parseAndCreateLayout(text, {
+                    trailingCommas: true,
+                    maxEmptyLines: 1
+                });
+    
+                expect(layout.toString()).to.equal(expected);
             });
-
-            expect(layout.toString()).to.equal(expected);
-        });
-
-        it("should remove multiple empty lines when the empty lines have whitespace", () => {
-            const text = "const a = {\n\n    \n    \n    a: 5,\n    b: 6,\n};";
-            const expected = "const a = {\n\n    a: 5,\n    b: 6,\n};";
-            const ast = parse(text);
-            const sourceCode = new SourceCode(text, "foo.js", ast);
-            const layout = new Layout(sourceCode, {
-                trailingCommas: true
+    
+            it("should remove multiple empty lines when the empty lines have whitespace", () => {
+                const text = "const a = {\n\n    \n    \n    a: 5,\n    b: 6,\n};";
+                const expected = "const a = {\n\n    a: 5,\n    b: 6,\n};";
+                const layout = parseAndCreateLayout(text, {
+                    trailingCommas: true
+                });
+    
+                expect(layout.toString()).to.equal(expected);
             });
-
-            expect(layout.toString()).to.equal(expected);
+    
+            it("should remove multiple empty lines when the empty lines have whitespace", () => {
+                const text = "const a = {\n\n    \n    \n    a: 5,\n    b: 6,\n};";
+                const expected = "const a = {\n\n    a: 5,\n    b: 6,\n};";
+                const layout = parseAndCreateLayout(text, {
+                    trailingCommas: true
+                });
+    
+                expect(layout.toString()).to.equal(expected);
+            });
         });
     });
+    
 
     describe("Indents", () => {
 
@@ -85,7 +133,8 @@ describe("Layout", () => {
             const text = "    `start`;";
             const expected = "`start`;";
             const ast = parse(text);
-            const layout = new Layout({ ast, text });
+            const sourceCode = new SourceCode(text, "foo.js", ast);
+            const layout = createLayout(sourceCode);
 
             const result = layout.findNext(token => token.type === "Whitespace", ast);
             expect(layout.toString()).to.equal(expected);
@@ -99,7 +148,8 @@ describe("Layout", () => {
         it("should return the correct indent level when the line has no indent", () => {
             const text = "a.b();";
             const ast = parse(text);
-            const layout = new Layout({ ast, text });
+            const sourceCode = new SourceCode(text, "foo.js", ast);
+            const layout = createLayout(sourceCode);
             const level = layout.getIndentLevel(ast.body[0]);
             expect(level).to.equal(0);
         });
@@ -107,7 +157,7 @@ describe("Layout", () => {
         it("should return the correct indent level when the indent is one level", () => {
             const text = "{\n    foo();\n}";
             const ast = parse(text);
-            const layout = new Layout({ ast, text });
+            const layout = createLayout({ ast, text });
             const level = layout.getIndentLevel(ast.body[0].body[0]);
             expect(level).to.equal(1);
         });
@@ -115,7 +165,7 @@ describe("Layout", () => {
         it("should return the correct indent level when the indent is two levels", () => {
             const text = "{\n    {\n        foo();\n    }\n}";
             const ast = parse(text);
-            const layout = new Layout({ ast, text });
+            const layout = createLayout({ ast, text });
             const level = layout.getIndentLevel(ast.body[0].body[0].body[0]);
             expect(level).to.equal(2);
         });
@@ -127,7 +177,7 @@ describe("Layout", () => {
         it("should indent one level when the code has no indent", () => {
             const text = "a.b();";
             const ast = parse(text);
-            const layout = new Layout({ ast, text });
+            const layout = createLayout({ ast, text });
 
             expect(layout.indentLevel(ast.body[0], 1)).to.equal(true);
             const level = layout.getIndentLevel(ast.body[0]);
@@ -137,7 +187,7 @@ describe("Layout", () => {
         it("should maintain the indent when passed the same indent level", () => {
             const text = "{\n    foo();\n}";
             const ast = parse(text);
-            const layout = new Layout({ ast, text });
+            const layout = createLayout({ ast, text });
 
             expect(layout.indentLevel(ast.body[0].body[0], 1)).to.equal(true);
             const level = layout.getIndentLevel(ast.body[0].body[0]);
@@ -151,7 +201,7 @@ describe("Layout", () => {
         it("should return the correct length when the line has no indent", () => {
             const text = "a.b();";
             const ast = parse(text);
-            const layout = new Layout({ ast, text });
+            const layout = createLayout({ ast, text });
             const { firstToken, lastToken } = layout.boundaryTokens(ast.body[0].expression.callee);
             const length = layout.getLength(firstToken, lastToken);
             expect(text).to.equal(layout.toString());
@@ -166,7 +216,7 @@ describe("Layout", () => {
         it("should return the correct line length when the line has no indent", () => {
             const text = "a.b();";
             const ast = parse(text);
-            const layout = new Layout({ ast, text });
+            const layout = createLayout({ ast, text });
             const length = layout.getLineLength(ast.body[0]);
             expect(text).to.equal(layout.toString());
             expect(length).to.equal(6);
@@ -175,7 +225,7 @@ describe("Layout", () => {
         it("should return the correct line length when the line has an indent", () => {
             const text = "if (foo){\n    a.b();\n}";
             const ast = parse(text);
-            const layout = new Layout({ ast, text });
+            const layout = createLayout({ ast, text });
             const length = layout.getLineLength(ast.body[0].consequent);
             expect(length).to.equal(10);
         });
@@ -183,7 +233,7 @@ describe("Layout", () => {
         it("should return the correct line length when is inside an if condition", () => {
             const text = "if (foo){\nconst foo = [1, 2, 3, 4, 5];\n}";
             const ast = parse(text);
-            const layout = new Layout({ ast, text });
+            const layout = createLayout({ ast, text });
             const length = layout.getLineLength(ast.body[0].consequent.body[0]);
             expect(length).to.equal(32);
         });
@@ -191,7 +241,7 @@ describe("Layout", () => {
         it("should return the correct line length when the line has a tab indent", () => {
             const text = "if (foo){\n\ta.b();\n}";
             const ast = parse(text);
-            const layout = new Layout({ ast, text }, { indent: "\t", tabWidth: 4 });
+            const layout = createLayout({ ast, text }, { indent: "\t", tabWidth: 4 });
             const length = layout.getLineLength(ast.body[0].consequent);
             expect(length).to.equal(10);
         });
@@ -204,7 +254,7 @@ describe("Layout", () => {
             const text = "a;";
             const expected = "a;\n\n";
             const ast = parse(text);
-            const layout = new Layout({ ast, text });
+            const layout = createLayout({ ast, text });
 
             const semi = layout.findNext(token => token.value === ";", layout.lastToken(ast.body[0]));
             expect(layout.emptyLineAfter(semi)).to.be.true;
@@ -215,7 +265,7 @@ describe("Layout", () => {
             const text = "a;\nb;";
             const expected = "a;\n\nb;";
             const ast = parse(text);
-            const layout = new Layout({ ast, text });
+            const layout = createLayout({ ast, text });
 
             const semi = layout.findNext(token => token.value === ";", layout.lastToken(ast.body[0]));
             expect(layout.emptyLineAfter(semi)).to.be.true;
@@ -226,7 +276,7 @@ describe("Layout", () => {
             const text = "a;\n  b;";
             const expected = "a;\n\nb;"; // note: spaces removed by indent behavior
             const ast = parse(text);
-            const layout = new Layout({ ast, text });
+            const layout = createLayout({ ast, text });
 
             const semi = layout.findNext(token => token.value === ";", layout.lastToken(ast.body[0]));
             expect(layout.emptyLineAfter(semi)).to.be.true;
@@ -237,7 +287,7 @@ describe("Layout", () => {
             const text = "a;\nb;";
             const expected = "a;\nb;\n\n";
             const ast = parse(text);
-            const layout = new Layout({ ast, text });
+            const layout = createLayout({ ast, text });
 
             const semi = layout.findNext(token => token.value === ";", layout.lastToken(ast.body[1]));
             expect(layout.emptyLineAfter(semi)).to.be.true;
@@ -248,7 +298,7 @@ describe("Layout", () => {
             const text = "a;\nb;\n\n";
             const expected = "a;\nb;\n\n";
             const ast = parse(text);
-            const layout = new Layout({ ast, text });
+            const layout = createLayout({ ast, text });
 
             const semi = layout.findNext(token => token.value === ";", layout.lastToken(ast.body[1]));
             expect(layout.emptyLineAfter(semi)).to.be.false;
@@ -259,7 +309,7 @@ describe("Layout", () => {
             const text = "a;\n\nb;";
             const expected = "a;\n\nb;";
             const ast = parse(text);
-            const layout = new Layout({ ast, text });
+            const layout = createLayout({ ast, text });
 
             const semi = layout.findNext(token => token.value === ";", layout.lastToken(ast.body[0]));
             expect(layout.emptyLineAfter(semi)).to.be.false;
@@ -270,7 +320,7 @@ describe("Layout", () => {
             const text = "a;\n  \nb;";
             const expected = "a;\n\nb;"; // note: extra spaces removed automatically
             const ast = parse(text);
-            const layout = new Layout({ ast, text });
+            const layout = createLayout({ ast, text });
 
             const semi = layout.findNext(token => token.value === ";", layout.lastToken(ast.body[0]));
             expect(layout.emptyLineAfter(semi)).to.be.false;
@@ -285,7 +335,7 @@ describe("Layout", () => {
             const text = "a;";
             const expected = "\na;";
             const ast = parse(text);
-            const layout = new Layout({ ast, text });
+            const layout = createLayout({ ast, text });
 
             expect(layout.emptyLineBefore(ast.body[0])).to.be.true;
             expect(layout.toString()).to.equal(expected);
@@ -295,7 +345,7 @@ describe("Layout", () => {
             const text = "a;\nb;";
             const expected = "a;\n\nb;";
             const ast = parse(text);
-            const layout = new Layout({ ast, text });
+            const layout = createLayout({ ast, text });
 
             expect(layout.emptyLineBefore(ast.body[1])).to.be.true;
             expect(layout.toString()).to.equal(expected);
@@ -305,7 +355,7 @@ describe("Layout", () => {
             const text = "a;b;";
             const expected = "a;\n\nb;";
             const ast = parse(text);
-            const layout = new Layout({ ast, text });
+            const layout = createLayout({ ast, text });
 
             expect(layout.emptyLineBefore(ast.body[1])).to.be.true;
             expect(layout.toString()).to.equal(expected);
@@ -315,7 +365,7 @@ describe("Layout", () => {
             const text = "a;\n\nb;";
             const expected = "a;\n\nb;";
             const ast = parse(text);
-            const layout = new Layout({ ast, text });
+            const layout = createLayout({ ast, text });
 
             expect(layout.emptyLineBefore(ast.body[1])).to.be.false;
             expect(layout.toString()).to.equal(expected);
@@ -325,7 +375,7 @@ describe("Layout", () => {
             const text = "\n\na;";
             const expected = "\n\na;";
             const ast = parse(text);
-            const layout = new Layout({ ast, text });
+            const layout = createLayout({ ast, text });
 
             expect(layout.emptyLineBefore(ast.body[0])).to.be.false;
             expect(layout.toString()).to.equal(expected);
@@ -339,7 +389,7 @@ describe("Layout", () => {
             const text = "a;\n\nb;";
             const expected = "a;\nb;";
             const ast = parse(text);
-            const layout = new Layout({ ast, text });
+            const layout = createLayout({ ast, text });
 
             layout.noEmptyLineAfter(ast.body[0]);
             expect(layout.toString()).to.equal(expected);
@@ -349,7 +399,7 @@ describe("Layout", () => {
             const text = "a;\n    \nb;";
             const expected = "a;\nb;";
             const ast = parse(text);
-            const layout = new Layout({ ast, text });
+            const layout = createLayout({ ast, text });
 
             layout.noEmptyLineAfter(ast.body[0]);
             expect(layout.toString()).to.equal(expected);
@@ -359,7 +409,7 @@ describe("Layout", () => {
             const text = "a;\n\nb;";
             const expected = "a;\nb;";
             const ast = parse(text);
-            const layout = new Layout({ ast, text });
+            const layout = createLayout({ ast, text });
 
             const token = layout.firstToken(ast);
             layout.noEmptyLineAfter(token);
@@ -370,7 +420,7 @@ describe("Layout", () => {
             const text = "a;\n    \nb;";
             const expected = "a;\nb;";
             const ast = parse(text);
-            const layout = new Layout({ ast, text });
+            const layout = createLayout({ ast, text });
 
             const token = layout.firstToken(ast);
             layout.noEmptyLineAfter(token);
@@ -381,7 +431,7 @@ describe("Layout", () => {
             const text = "a;\nb;\n\n";
             const expected = "a;\nb;\n";
             const ast = parse(text);
-            const layout = new Layout({ ast, text });
+            const layout = createLayout({ ast, text });
 
             layout.noEmptyLineAfter(ast.body[1]);
             expect(layout.toString()).to.equal(expected);
@@ -391,7 +441,7 @@ describe("Layout", () => {
             const text = "a;\nb;";
             const expected = "a;\nb;";
             const ast = parse(text);
-            const layout = new Layout({ ast, text });
+            const layout = createLayout({ ast, text });
 
             layout.noEmptyLineAfter(ast.body[0]);
             expect(layout.toString()).to.equal(expected);
@@ -401,7 +451,7 @@ describe("Layout", () => {
             const text = "a;\nb;";
             const expected = "a;\nb;";
             const ast = parse(text);
-            const layout = new Layout({ ast, text });
+            const layout = createLayout({ ast, text });
 
             const token = layout.firstToken(ast);
             layout.noEmptyLineAfter(token);
@@ -416,7 +466,7 @@ describe("Layout", () => {
             const text = "a;\n\nb;";
             const expected = "a;\nb;";
             const ast = parse(text);
-            const layout = new Layout({ ast, text });
+            const layout = createLayout({ ast, text });
 
             layout.noEmptyLineBefore(ast.body[1]);
             expect(layout.toString()).to.equal(expected);
@@ -426,7 +476,7 @@ describe("Layout", () => {
             const text = "a;\n   \nb;";
             const expected = "a;\nb;";
             const ast = parse(text);
-            const layout = new Layout({ ast, text });
+            const layout = createLayout({ ast, text });
 
             layout.noEmptyLineBefore(ast.body[1]);
             expect(layout.toString()).to.equal(expected);
@@ -436,7 +486,7 @@ describe("Layout", () => {
             const text = "a;\n\nb;";
             const expected = "a;\nb;";
             const ast = parse(text);
-            const layout = new Layout({ ast, text });
+            const layout = createLayout({ ast, text });
 
             const token = layout.firstToken(ast.body[1]);
             layout.noEmptyLineBefore(token);
@@ -447,7 +497,7 @@ describe("Layout", () => {
             const text = "a;\n    \nb;";
             const expected = "a;\nb;";
             const ast = parse(text);
-            const layout = new Layout({ ast, text });
+            const layout = createLayout({ ast, text });
 
             const token = layout.firstToken(ast.body[1]);
             layout.noEmptyLineBefore(token);
@@ -458,7 +508,7 @@ describe("Layout", () => {
             const text = "\na;\nb;";
             const expected = "a;\nb;";
             const ast = parse(text);
-            const layout = new Layout({ ast, text });
+            const layout = createLayout({ ast, text });
 
             layout.noEmptyLineBefore(ast.body[0]);
             expect(layout.toString()).to.equal(expected);
@@ -468,7 +518,7 @@ describe("Layout", () => {
             const text = "    \na;\nb;";
             const expected = "a;\nb;";
             const ast = parse(text);
-            const layout = new Layout({ ast, text });
+            const layout = createLayout({ ast, text });
 
             layout.noEmptyLineBefore(ast.body[0]);
             expect(layout.toString()).to.equal(expected);
@@ -479,7 +529,7 @@ describe("Layout", () => {
             const text = "a;\nb;";
             const expected = "a;\nb;";
             const ast = parse(text);
-            const layout = new Layout({ ast, text });
+            const layout = createLayout({ ast, text });
 
             layout.noEmptyLineBefore(ast.body[1]);
             expect(layout.toString()).to.equal(expected);
@@ -489,7 +539,7 @@ describe("Layout", () => {
             const text = "a;\nb;";
             const expected = "a;\nb;";
             const ast = parse(text);
-            const layout = new Layout({ ast, text });
+            const layout = createLayout({ ast, text });
 
             const token = layout.firstToken(ast.body[1]);
             layout.noEmptyLineBefore(token);

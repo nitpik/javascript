@@ -21,6 +21,7 @@ By default, Nitpik JavaScript automatically makes the following changes:
 1. **Collapses whitespace.** Use a single space anywhere there's more than one space or other whitespace characters.
 2. **Removes trailing whitespace.** Remove whitespace that appears before a line break.
 3. **Normalizes comma spacing.** Spaces before commas are removed and spaces after commas are added where expected (spaces are not added when the comma is immediately followed by a line break).
+4. **Normalizes semicolon spacing.** Spaces before semicolons are removed and spaces after semicolons are added where expected (spaces are not added when the semicolon is immediately followed by a line break).
 
 ## Usage
 
@@ -67,15 +68,16 @@ import { JavaScriptFormatter } from "https://unpkg.com/@nitpick/javascript/dist/
 After importing, create a new instance of `JavaScriptFormatter`. The constructor accepts one argument which is a configuration object with the following keys:
 
 * **style** - formatting options
-  * **indent** - either the character to use for indents or the number of spaces (default: `4`)
-  * **tabWidth** - the number of spaces to count for each tab character (defualt: `4`)
-  * **lineEndings** - the line ending format, either "windows" or "unix" (defualt: `"unix"`)
-  * **semicolons** - whether or not to use semicolons (default: `true`)
-  * **quotes** - the style of quotes to use, either "single" or "double" (default: `"double"`)
   * **collapseWhitespace** - whether multiple spaces in a row should be collapsed into one (default: `true`)
-  * **trailingCommas** - whether trailing commas should be used for multiline object and array literals (default: `false`)
+  * **emptyLastLine** - should the input end with a line break (default: `true`)
+  * **indent** - either the character to use for indents or the number of spaces (default: `4`)
+  * **lineEndings** - the line ending format, either "windows" or "unix" (defualt: `"unix"`)
   * **maxEmptyLines** - the maximumn number of empty lines allowed before collapsing (default: `1`)
   * **maxLineLength** - the maximum length of a line before wrapping (defualt: `Infinity`)
+  * **quotes** - the style of quotes to use, either "single" or "double" (default: `"double"`)
+  * **semicolons** - whether or not to use semicolons (default: `true`)
+  * **tabWidth** - the number of spaces to count for each tab character (defualt: `4`)
+  * **trailingCommas** - whether trailing commas should be used for multiline object and array literals (default: `false`)
   * **trimTrailingWhitespace** - should trailing whitespace be removed (default: `true`)
 * **plugins** - Optional. An array of plugins (see below for examples).
 
