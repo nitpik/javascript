@@ -701,11 +701,13 @@ export class Layout {
             if(!this.tokenList.isIndent(previousToken)) {
                 if (this.tokenList.isWhitespace(previousToken)) {
                     previousToken.value = " ";
+                    return true;
                 } else if (!this.tokenList.isLineBreak(previousToken)) {
                     this.tokenList.insertBefore({
                         type: "Whitespace",
                         value: " "
                     }, firstToken);
+                    return true;
                 }
             }
         } else {
@@ -713,7 +715,10 @@ export class Layout {
                 type: "Whitespace",
                 value: " "
             }, firstToken);
+            return true;
         }
+
+        return false;
     }
 
     spaceAfter(partOrNode) {
@@ -723,18 +728,23 @@ export class Layout {
         if (nextToken) {
             if (this.tokenList.isWhitespace(nextToken)) {
                 nextToken.value = " ";
+                return true;
             } else if (!this.tokenList.isLineBreak(nextToken)) {
                 this.tokenList.insertAfter({
                     type: "Whitespace",
                     value: " "
                 }, lastToken);
+                return true;
             }
         }
+
+        return false;
     }
 
     spaces(partOrNode) {
-        this.spaceBefore(partOrNode);
-        this.spaceAfter(partOrNode);
+        const afterResult = this.spaceAfter(partOrNode);
+        const beforeResult = this.spaceBefore(partOrNode);
+        return afterResult || beforeResult;
     }
 
     noSpaceAfter(partOrNode) {
@@ -743,7 +753,10 @@ export class Layout {
         const next = this.tokenList.next(part);
         if (next && this.tokenList.isWhitespace(next)) {
             this.tokenList.delete(next);
+            return true;
         }
+
+        return false;
     }
 
     noSpaceBefore(partOrNode) {
@@ -752,12 +765,16 @@ export class Layout {
         const previous = this.tokenList.previous(part);
         if (previous && this.tokenList.isWhitespace(previous) && !this.tokenList.isIndent(previous)) {
             this.tokenList.delete(previous);
+            return true;
         }
+
+        return false;
     }
 
     noSpaces(partOrNode) {
-        this.noSpaceAfter(partOrNode);
-        this.noSpaceBefore(partOrNode);
+        const afterResult = this.noSpaceAfter(partOrNode);
+        const beforeResult = this.noSpaceBefore(partOrNode);
+        return afterResult || beforeResult;
     }
 
     semicolonAfter(partOrNode) {
@@ -771,6 +788,7 @@ export class Layout {
                     type: "Punctuator",
                     value: ";",
                 }, part);
+                return true;
             }
         } else {
             // we are at the end of the file, so just add the semicolon
@@ -778,7 +796,10 @@ export class Layout {
                 type: "Punctuator",
                 value: ";"
             });
+            return true;
         }
+
+        return false;
     }
     
     noSemicolonAfter(partOrNode) {
@@ -907,6 +928,8 @@ export class Layout {
 
             return true;
         }
+
+        return false;
     }
 
     emptyLineAfter(tokenOrNode) {
