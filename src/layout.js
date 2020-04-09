@@ -1146,7 +1146,7 @@ export class Layout {
                     type: "LineBreak",
                     value: this.options.lineEndings
                 }, token);
-
+                
                 // trim trailing whitespace if necessary
                 if (this.options.trimTrailingWhitespace && this.tokenList.isWhitespace(previousToken)) {
                     this.tokenList.delete(previousToken);

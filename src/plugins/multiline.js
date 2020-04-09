@@ -80,10 +80,15 @@ export default function(context) {
                 isMemberExpression(node.callee)
             ) {
                 wrapper.wrap(node.callee);
-            }    
+            }
 
+            const firstArgOnDifferentLine = node.arguments.length && !layout.isSameLine(node.callee, node.arguments[0]);
+            
             // covers long calls like `foo(bar, baz)`
-            wrapIfTooLongOrMultiLine(node);
+            if (layout.isLineTooLong(node) || firstArgOnDifferentLine) {
+                wrapper.wrap(node);
+            }
+            // wrapIfTooLong(node);
         },
 
         ConditionalExpression: wrapIfTooLongOrMultiLine,       
