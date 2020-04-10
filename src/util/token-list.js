@@ -22,8 +22,6 @@ import { OrderedSet } from "@humanwhocodes/ordered-set";
  * @property {int} maxEmptyLines The maximum number of empty lines permitted
  *      before lines are deleted from the token list.
  * @property {string} quotes The string to use to quote strings.
- * @property {boolean} trimTrailingWhitespace If true, trims whitespace before
- *      line breaks.
  */
 
 //-----------------------------------------------------------------------------
@@ -67,9 +65,7 @@ const DEFAULT_OPTIONS = {
     indent: 4,
     lineEndings: "\n",
     quotes: "\"",
-    trimTrailingWhitespace: true,
-    collapseWhitespace: true,
-    maxEmptyLines: 1
+    collapseWhitespace: true
 };
 
 //-----------------------------------------------------------------------------
@@ -179,14 +175,6 @@ function buildTokenList(list, ast, text, options) {
         if (c) {
 
             if (NEWLINE.test(c)) {
-
-                // if there is whitespace before LineBreak, delete it
-                // if (options.trimTrailingWhitespace) {
-                //     const previous = list.last();
-                //     if (previous && list.isWhitespace(previous)) {
-                //         list.delete(previous);
-                //     }
-                // }
 
                 let startIndex = index;
 

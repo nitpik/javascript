@@ -427,7 +427,13 @@ export default function(context) {
         UpdateExpression(node) {
             if (node.prefix) {
                 const operatorToken = layout.firstToken(node);
-                layout.noSpaceAfter(operatorToken);
+
+                // "typeof" is also an operator and requires a space no matter what
+                if (operatorToken.type === "Punctuator") {
+                    layout.noSpaceAfter(operatorToken);
+                } else {
+                    layout.spaceAfter(operatorToken);
+                }
             } else {
                 const operatorToken = layout.lastToken(node);
                 layout.noSpaceBefore(operatorToken);
