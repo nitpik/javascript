@@ -1,6 +1,6 @@
 {
   "name": "@nitpik/javascript",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "A pluggable JavaScript source code formatter",
   "main": "dist/pkg.cjs.js",
   "scripts": {
