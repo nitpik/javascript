@@ -2,6 +2,10 @@
     "maxLineLength": 80
 }
 ---
+it("some title", () => {
+    console.log("Hi");
+});
+
 function doSomething({greeting = "hello", greeted = '"World"', silent = false, onMouseOver}) {
 
   if(!greeting){return null};
@@ -22,7 +26,17 @@ return true;
 const a = ({greeting = "hello", greeted = "world", silent = false, onMouseOver, someReallyLongVariable}, foo) => {
 return true;
 };
+
+call(
+"some title",
+() => {
+    console.log("Hi");
+});
 ---
+it("some title", () => {
+    console.log("Hi");
+});
+
 function doSomething({
     greeting = "hello",
     greeted = "\"World\"",
@@ -76,3 +90,10 @@ const a = (
 ) => {
     return true;
 };
+
+call(
+    "some title",
+    () => {
+        console.log("Hi");
+    }
+);

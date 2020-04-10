@@ -183,7 +183,7 @@ const wrappers = new Map(Object.entries({
         const indentLevel = layout.getIndentLevel(node) + 1;
         const openParen = layout.findNext("(", node.callee);
         const closeParen = layout.lastToken(node);
-
+        
         if (node.arguments.length > 1) {
             layout.lineBreakAfter(openParen);
             layout.lineBreakBefore(closeParen);
@@ -195,6 +195,8 @@ const wrappers = new Map(Object.entries({
                     layout.lineBreakAfter(maybeComma);
                 }
             });
+
+            layout.lineBreakBefore(closeParen);
         } else {
             layout.noSpaceAfter(openParen);
             layout.noSpaceBefore(closeParen);
