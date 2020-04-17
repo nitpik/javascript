@@ -237,7 +237,7 @@ a(\`hello \${
             const [ options, source, expected ] = contents.split("\n---\n");
             
 
-            // if (!fileName.includes("operator")) return;
+            // if (!fileName.includes("comments")) return;
             it(`Test in ${ fileName } should format correctly`, () => {
                 const formatter = new Formatter({
                     style: JSON.parse(options)

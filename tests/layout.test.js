@@ -129,6 +129,15 @@ describe("Layout", () => {
 
     describe("Indents", () => {
 
+        it("should indent multiline block comments correctly when preceded by object literal", () => {
+            const text = "const a = {\n    a: b\n};\n\n/*a\n *b\n *c\n */";
+            const layout = parseAndCreateLayout(text, {
+                trailingCommas: false
+            });
+
+            expect(layout.toString()).to.equal(text);
+        });
+
         it("should remove whitespace tokens when their strings are empty", () => {
             const text = "    `start`;";
             const expected = "`start`;";

@@ -242,7 +242,7 @@ export class TokenList extends OrderedSet {
     /**
      * Creates a new instance.
      */
-    constructor() {
+    constructor(iterable) {
 
         super();
 
@@ -261,6 +261,13 @@ export class TokenList extends OrderedSet {
          * @private
          */
         this[originalIndents] = new Map();
+
+        // if an iterable was passed, add the items
+        if (iterable && Symbol.iterator in iterable) {
+            for (const part of iterable) {
+                this.add(part);
+            }
+        }
     }
 
     /**
@@ -516,6 +523,12 @@ export class TokenList extends OrderedSet {
     findPreviousIndent(token) {
         let previousToken = this.previous(token);
         while (previousToken && !this.isIndent(previousToken)) {
+            
+            // if we hit a line break, there was no previous indent
+            if (this.isLineBreak(previousToken)) {
+                return undefined;
+            }
+            
             previousToken = this.previous(previousToken);
         }
         return previousToken;

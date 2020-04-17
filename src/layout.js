@@ -65,7 +65,7 @@ function indentBlockComment(part, parts, options) {
 
     const previousIndent = parts.findPreviousIndent(part);
     if (previousIndent && NEWLINE.test(part.value)) {
-
+        
         // first normalize the new lines and replace with the user preference
         let newValue = part.value
             .replace(/\r\n/g, "\n")
