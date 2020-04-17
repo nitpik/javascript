@@ -1,5 +1,20 @@
 {}
 ---
+const x = {
+    foo: "bar"
+};
+
+/**
+ * @fileoverview Main application object for a CLI.
+ * @author Nicholas C. Zakas
+ */
+
+/**
+ * JSDoc
+ * @param {string} foo
+ * @returns {string} something.
+ */
+
 /* block comment */
 // line comment
 /* block
@@ -23,6 +38,21 @@ bar();
     }
 }
 ---
+const x = {
+    foo: "bar"
+};
+
+/**
+ * @fileoverview Main application object for a CLI.
+ * @author Nicholas C. Zakas
+ */
+
+/**
+ * JSDoc
+ * @param {string} foo
+ * @returns {string} something.
+ */
+
 /* block comment */
 // line comment
 /* block
