@@ -30,21 +30,21 @@ By default, Nitpik JavaScript automatically makes the following changes:
 Install using [npm][npm] or [yarn][yarn]:
 
 ```
-npm install @nitpick/javascript --save
+npm install @nitpik/javascript --save
 
 # or
 
-yarn add @nitpick/javascript
+yarn add @nitpik/javascript
 ```
 
 Import into your Node.js project:
 
 ```js
 // CommonJS
-const { JavaScriptFormatter } = require("@nitpick/javascript");
+const { JavaScriptFormatter } = require("@nitpik/javascript");
 
 // ESM
-import { JavaScriptFormatter } from "@nitpick/javascript";
+import { JavaScriptFormatter } from "@nitpik/javascript";
 ```
 
 ### Deno
@@ -52,7 +52,7 @@ import { JavaScriptFormatter } from "@nitpick/javascript";
 Import into your Deno project:
 
 ```js
-import { JavaScriptFormatter } from "https://unpkg.com/@nitpick/javascript/dist/pkg.js";
+import { JavaScriptFormatter } from "https://unpkg.com/@nitpik/javascript/dist/pkg.js";
 ```
 
 ### Browser
@@ -60,7 +60,7 @@ import { JavaScriptFormatter } from "https://unpkg.com/@nitpick/javascript/dist/
 Import into a browser script:
 
 ```js
-import { JavaScriptFormatter } from "https://unpkg.com/@nitpick/javascript/dist/pkg.js";
+import { JavaScriptFormatter } from "https://unpkg.com/@nitpik/javascript/dist/pkg.js";
 ```
 
 ## API
