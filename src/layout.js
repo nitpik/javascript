@@ -48,6 +48,10 @@ const DEFAULT_OPTIONS = {
 // Helpers
 //-----------------------------------------------------------------------------
 
+
+
+
+
 /**
  * Normalizes the options into a format that `TokenList` can understand.
  * @param {Object} options The options to normalize.
@@ -71,7 +75,7 @@ function indentBlockComment(part, parts, options) {
             .replace(/\r\n/g, "\n")
             .replace(NEWLINE, options.lineEndings);
 
-        const originalIndent = parts.getOriginalIndent(part);
+        const originalIndent = parts.getOriginalCommentIndent(part);
         part.value = newValue.split(options.lineEndings).map((line, index) => {
 
             /*
@@ -96,7 +100,6 @@ function normalizeIndentsAndLineBreaks(tokenList, options) {
     let token = tokenList.first();
 
     while (token) {
-
         if (tokenList.isIndentIncreaser(token)) {
             indentLevel++;
             lineBreakCount = 0;

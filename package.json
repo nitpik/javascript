@@ -30,7 +30,7 @@
   "author": "Nicholas C. Zakas",
   "license": "Apache-2.0",
   "dependencies": {
-    "@humanwhocodes/ordered-set": "^0.2.0",
+    "@nitpik/toolkit": "^0.1.1",
     "espree": "^7.0.0",
     "estraverse": "^4.3.0"
   },
