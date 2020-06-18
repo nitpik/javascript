@@ -7,8 +7,7 @@
 // Imports
 //-----------------------------------------------------------------------------
 
-// import { OrderedSet } from "@humanwhocodes/ordered-set";
-import { AbstractTokenList } from "../../../toolkit/dist/pkg.js";
+import { NitpikTokenList } from "@nitpik/toolkit";
 
 //-----------------------------------------------------------------------------
 // TypeDefs
@@ -142,7 +141,7 @@ function createTokens({ tokens, comments, text }, options) {
 /**
  * A doubly-linked list representing the parts of source code.
  */
-export class TokenList extends AbstractTokenList {
+export class TokenList extends NitpikTokenList {
 
     /**
      * Creates a new instance.
